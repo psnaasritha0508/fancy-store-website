@@ -67,5 +67,5 @@ export const SPLASH_DURATION_MS = 2200  // total splash display time
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Change this password before deployment
-export const ADMIN_PASSWORD = 'admin'
+export const ADMIN_PASSWORD = 'MuraliP78'
 
