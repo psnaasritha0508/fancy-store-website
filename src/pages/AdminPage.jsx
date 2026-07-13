@@ -5,20 +5,26 @@ import {
   AdminAuth,
   DashboardLayout,
   DashboardOverview,
-  ProductList
+  ProductList,
+  CategoryManager,
+  ProductFormModal
 } from '@components/admin'
 import { storageService } from '@services/storageService'
 import { STORE_NAME } from '@constants'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminPage Component
-// Handles authentication check and displays active dashboard tab content
+// Integrates authentication and dashboard tab panels with full CRUD operations.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
   const [products, setProducts] = useState([])
+
+  // Modal form states
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
 
   // Set document title for SEO
   useEffect(() => {
@@ -51,7 +57,7 @@ export default function AdminPage() {
     if (confirmDelete) {
       const updated = storageService.deleteProduct(id)
       setProducts(updated)
-      toast.success(`"${name}" was deleted successfully.`)
+      toast.success(`"${name}" deleted successfully.`)
     }
   }
 
@@ -59,10 +65,30 @@ export default function AdminPage() {
   const handleResetDefaults = () => {
     const confirmReset = window.confirm('Restore all default products? This will overwrite your current list.')
     if (confirmReset) {
-      const resetList = storageService.resetProducts()
-      setProducts(resetList)
+      const res = storageService.resetAll()
+      setProducts(res.products)
       toast.success('Database restored to default product catalog.')
     }
+  }
+
+  // Save / Update handler from Product Form Modal
+  const handleSaveProduct = (payload) => {
+    const updatedList = storageService.updateProduct(payload.id, payload)
+    setProducts(updatedList)
+    setIsFormOpen(false)
+    setEditingProduct(null)
+    toast.success(`"${payload.name}" saved successfully.`)
+  }
+
+  // Manual list ordering handlers
+  const handleMoveUp = (id) => {
+    const updated = storageService.moveProductUp(id)
+    setProducts(updated)
+  }
+
+  const handleMoveDown = (id) => {
+    const updated = storageService.moveProductDown(id)
+    setProducts(updated)
   }
 
   // If not authenticated, show password gate screen
@@ -93,25 +119,24 @@ export default function AdminPage() {
           {activeSection === 'products' && (
             <ProductList
               products={products}
+              onAddProduct={() => {
+                setEditingProduct(null)
+                setIsFormOpen(true)
+              }}
+              onEditProduct={(prod) => {
+                setEditingProduct(prod)
+                setIsFormOpen(true)
+              }}
               onDeleteProduct={handleDeleteProduct}
               onResetDefaults={handleResetDefaults}
+              onMoveUp={handleMoveUp}
+              onMoveDown={handleMoveDown}
             />
           )}
 
-          {/* Categories Tab Placeholder */}
+          {/* Categories Tab */}
           {activeSection === 'categories' && (
-            <div className="py-12 text-center border rounded-2xl p-8 bg-[var(--color-card)] border-[var(--color-border)]">
-              <span className="text-4xl block mb-3">🏷️</span>
-              <h3 className="font-heading text-lg font-bold mb-1" style={{ color: 'var(--color-text)' }}>
-                Categories Management
-              </h3>
-              <p className="font-body text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Categories control panel is configured and ready.
-              </p>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                Placeholder — Features coming soon
-              </span>
-            </div>
+            <CategoryManager onSyncRequired={() => setProducts(storageService.getProducts())} />
           )}
 
           {/* Featured Products Tab Placeholder */}
@@ -119,13 +144,13 @@ export default function AdminPage() {
             <div className="py-12 text-center border rounded-2xl p-8 bg-[var(--color-card)] border-[var(--color-border)]">
               <span className="text-4xl block mb-3">⭐</span>
               <h3 className="font-heading text-lg font-bold mb-1" style={{ color: 'var(--color-text)' }}>
-                Featured Products Management
+                Featured Products Settings
               </h3>
               <p className="font-body text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Mark bestsellers and featured spotlight banners.
+                Mark bestsellers and featured spotlight banners. Features are fully integrated with the products list toggle.
               </p>
               <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                Placeholder — Features coming soon
+                To feature a product, toggle "Featured Product" inside edit forms.
               </span>
             </div>
           )}
@@ -163,6 +188,18 @@ export default function AdminPage() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* Global Product Add/Edit Form Modal */}
+      <ProductFormModal
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false)
+          setEditingProduct(null)
+        }}
+        productToEdit={editingProduct}
+        allProducts={products}
+        onSave={handleSaveProduct}
+      />
     </DashboardLayout>
   )
 }

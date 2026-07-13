@@ -1,12 +1,14 @@
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import Container from '@components/ui/Container'
 import Section from '@components/ui/Section'
-import CATEGORIES from '@data/categories'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CategoriesSection — Responsive grid of category cards
 // Clicking navigates to /shop?category={id}
+// Loads categories dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const cardVariants = {
@@ -15,7 +17,7 @@ const cardVariants = {
     opacity:    1,
     y:          0,
     scale:      1,
-    transition: { delay: i * 0.055, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { delay: i * 0.04, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   }),
 }
 
@@ -25,6 +27,10 @@ function CategoryCard({ category, index }) {
   const handleClick = () => {
     navigate(`/shop?category=${category.id}`)
   }
+
+  // Set default theme colors if missing from user-created categories
+  const color = category.color || '#7B4B6A'
+  const bgLight = category.bgLight || '#F7F0F4'
 
   return (
     <motion.button
@@ -48,7 +54,7 @@ function CategoryCard({ category, index }) {
       {/* Color accent top bar */}
       <motion.div
         className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
-        style={{ backgroundColor: category.color, opacity: 0 }}
+        style={{ backgroundColor: color, opacity: 0 }}
         animate={{ opacity: 0 }}
         whileHover={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -57,9 +63,9 @@ function CategoryCard({ category, index }) {
       {/* Emoji icon in colored circle */}
       <div
         className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 transition-transform duration-200 group-hover:scale-110"
-        style={{ backgroundColor: category.bgLight }}
+        style={{ backgroundColor: bgLight }}
       >
-        {category.emoji}
+        {category.emoji || '✨'}
       </div>
 
       {/* Label */}
@@ -70,20 +76,20 @@ function CategoryCard({ category, index }) {
         {category.label}
       </span>
 
-      {/* Description (hidden on mobile, visible on larger) */}
+      {/* Description */}
       <span
-        className="hidden sm:block font-body text-xs leading-relaxed"
+        className="hidden sm:block font-body text-xs leading-relaxed line-clamp-2"
         style={{ color: 'var(--color-text-muted)' }}
       >
-        {category.description}
+        {category.description || 'Browse premium fancy collection items.'}
       </span>
 
       {/* Hover overlay */}
       <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-250"
         style={{
-          background: `linear-gradient(135deg, ${category.color}08, ${category.color}16)`,
-          boxShadow:  `0 8px 24px ${category.color}22`,
+          background: `linear-gradient(135deg, ${color}08, ${color}16)`,
+          boxShadow:  `0 8px 24px ${color}22`,
         }}
       />
     </motion.button>
@@ -91,6 +97,23 @@ function CategoryCard({ category, index }) {
 }
 
 export default function CategoriesSection() {
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    setCategories(storageService.getCategories())
+    
+    // Listen for storage events (sync between admin tab/window)
+    const handleSync = () => {
+      setCategories(storageService.getCategories())
+    }
+    window.addEventListener('focus', handleSync)
+    window.addEventListener('storage', handleSync)
+    return () => {
+      window.removeEventListener('focus', handleSync)
+      window.removeEventListener('storage', handleSync)
+    }
+  }, [])
+
   return (
     <Section
       bg="alt"
@@ -120,8 +143,8 @@ export default function CategoriesSection() {
 
         {/* Grid — 2 cols on xs, 3 on sm, 4 on md, 5 on lg+ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-          {CATEGORIES.map((cat, i) => (
-            <CategoryCard key={cat.id} category={cat} index={i} />
+          {categories.map((cat, i) => (
+            <CategoryCard key={cat.id || cat.label} category={cat} index={i} />
           ))}
         </div>
       </Container>

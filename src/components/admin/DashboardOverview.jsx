@@ -13,7 +13,7 @@ export default function DashboardOverview({ products = [] }) {
   const categories = useUniqueCategories(products)
   const totalCategories = categories.length
 
-  const totalFeatured = products.filter(p => p.featured || p.isBestseller).length
+  const totalFeatured = products.filter(p => p.featured === true).length
   const totalOutOfStock = products.filter(p => p.availability === 'out-of-stock' || p.inStock === false).length
 
   const stats = [

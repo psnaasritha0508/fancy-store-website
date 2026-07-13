@@ -1,18 +1,41 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import Container from '@components/ui/Container'
 import Button from '@components/ui/Button'
 import { ProductCard } from '@components/shop'
-import { FEATURED_PRODUCTS } from '@data/products'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FeaturedProducts Section
 // Displays handpicked items from the products collection on the Home page.
-// Uses the shared, reusable ProductCard.
+// Loads data reactively from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function FeaturedProducts() {
+  const [featuredProducts, setFeaturedProducts] = useState([])
+
+  useEffect(() => {
+    const loadFeatured = () => {
+      const allProducts = storageService.getProducts()
+      // Filter for featured flag
+      const featured = allProducts.filter(p => p.featured === true)
+      // Limit to max 8 items for premium homepage presentation
+      setFeaturedProducts(featured.slice(0, 8))
+    }
+
+    loadFeatured()
+    window.addEventListener('focus', loadFeatured)
+    window.addEventListener('storage', loadFeatured)
+    return () => {
+      window.removeEventListener('focus', loadFeatured)
+      window.removeEventListener('storage', loadFeatured)
+    }
+  }, [])
+
+  if (featuredProducts.length === 0) return null
+
   return (
     <section
       className="section-padding"
@@ -55,7 +78,7 @@ export default function FeaturedProducts() {
 
         {/* Products grid — 2 cols mobile, 3 sm, 4 lg */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-          {FEATURED_PRODUCTS.map((product, i) => (
+          {featuredProducts.map((product, i) => (
             <ProductCard key={product.id} product={product} index={i} />
           ))}
         </div>

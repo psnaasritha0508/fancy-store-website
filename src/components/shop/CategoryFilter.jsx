@@ -1,12 +1,29 @@
-import { motion } from 'framer-motion'
-import { CATEGORIES } from '@data/categories'
+import { useEffect, useState } from 'react'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable CategoryFilter Component
 // Horizontal scrollable pills with custom active states and counts
+// Loads categories dynamically from storageService to reflect admin updates
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function CategoryFilter({ selectedCategory, onSelect, products = [] }) {
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    setCategories(storageService.getCategories())
+
+    const handleSync = () => {
+      setCategories(storageService.getCategories())
+    }
+    window.addEventListener('focus', handleSync)
+    window.addEventListener('storage', handleSync)
+    return () => {
+      window.removeEventListener('focus', handleSync)
+      window.removeEventListener('storage', handleSync)
+    }
+  }, [])
+
   // Count products in each category for display badges
   const getProductCount = (categoryId) => {
     if (!categoryId) return products.length
@@ -61,13 +78,17 @@ export default function CategoryFilter({ selectedCategory, onSelect, products = 
         </button>
 
         {/* Individual category pills */}
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const isActive = selectedCategory === cat.id
           const count = getProductCount(cat.id)
 
+          // Fallbacks for custom owner categories
+          const color = cat.color || '#7B4B6A'
+          const bgLight = cat.bgLight || '#F7F0F4'
+
           return (
             <button
-              key={cat.id}
+              key={cat.id || cat.label}
               onClick={() => onSelect(cat.id)}
               className={[
                 'px-4 py-2.5 rounded-full text-xs font-semibold shrink-0 transition-all duration-200 border cursor-pointer flex items-center gap-1.5',
@@ -76,19 +97,19 @@ export default function CategoryFilter({ selectedCategory, onSelect, products = 
                   : 'border-[var(--color-border)] hover:bg-neutral-50 dark:hover:bg-neutral-800',
               ].join(' ')}
               style={{
-                backgroundColor: isActive ? cat.color : 'var(--color-card)',
-                borderColor:     isActive ? cat.color : 'var(--color-border)',
+                backgroundColor: isActive ? color : 'var(--color-card)',
+                borderColor:     isActive ? color : 'var(--color-border)',
                 color:           isActive ? '#FFFFFF' : 'var(--color-text)',
                 boxShadow:       isActive ? 'var(--shadow-sm)' : 'none',
               }}
             >
-              <span>{cat.emoji}</span>
+              <span>{cat.emoji || '✨'}</span>
               <span>{cat.label}</span>
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-0.5"
                 style={{
-                  backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : cat.bgLight,
-                  color:           isActive ? '#FFFFFF' : cat.color,
+                  backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : bgLight,
+                  color:           isActive ? '#FFFFFF' : color,
                 }}
               >
                 {count}

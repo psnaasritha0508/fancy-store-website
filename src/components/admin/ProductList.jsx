@@ -1,22 +1,22 @@
-import { Edit, Trash, Plus } from 'lucide-react'
+import { Edit, Trash, Plus, ArrowUp, ArrowDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { toast } from 'react-hot-toast'
 import Button from '@components/ui/Button'
 import { formatCurrency } from '@utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProductList Component
-// Renders the responsive table/grid of products, handles CRUD placeholder triggers
+// Renders the responsive table/grid of products, handles CRUD triggers and Move controls.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function ProductList({ products = [], onDeleteProduct, onResetDefaults }) {
-  const handleEditClick = (product) => {
-    toast.success(`Edit Form placeholder for: "${product.name}" (Forms implemented in a future phase)`)
-  }
-
-  const handleAddClick = () => {
-    toast.success('Add Product Form placeholder (Forms implemented in a future phase)')
-  }
+export default function ProductList({
+  products = [],
+  onAddProduct,
+  onEditProduct,
+  onDeleteProduct,
+  onResetDefaults,
+  onMoveUp,
+  onMoveDown
+}) {
 
   if (products.length === 0) {
     return (
@@ -39,7 +39,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
             variant="primary"
             size="md"
             leftIcon={<Plus size={16} />}
-            onClick={handleAddClick}
+            onClick={onAddProduct}
           >
             Add Product
           </Button>
@@ -74,7 +74,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
           variant="primary"
           size="sm"
           leftIcon={<Plus size={16} />}
-          onClick={handleAddClick}
+          onClick={onAddProduct}
         >
           Add Product
         </Button>
@@ -100,6 +100,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                   color:           'var(--color-text-muted)',
                 }}
               >
+                <th className="px-6 py-4">Order</th>
                 <th className="px-6 py-4">Image</th>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Category</th>
@@ -111,7 +112,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
             </thead>
             <tbody>
               <AnimatePresence>
-                {products.map((product) => {
+                {products.map((product, index) => {
                   const isOutOfStock = product.availability === 'out-of-stock' || product.inStock === false
                   return (
                     <motion.tr
@@ -120,12 +121,35 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                       className="border-b hover:bg-neutral-50 dark:hover:bg-neutral-800/40 font-body text-sm transition-colors"
                       style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
                     >
+                      {/* Move Order Controls */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-0.5 items-center justify-center">
+                          <button
+                            onClick={() => onMoveUp(product.id)}
+                            disabled={index === 0}
+                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            title="Move Up"
+                          >
+                            <ArrowUp size={12} />
+                          </button>
+                          <button
+                            onClick={() => onMoveDown(product.id)}
+                            disabled={index === products.length - 1}
+                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            title="Move Down"
+                          >
+                            <ArrowDown size={12} />
+                          </button>
+                        </div>
+                      </td>
+
                       {/* Image */}
                       <td className="px-6 py-4">
                         <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 select-none"
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 select-none overflow-hidden border"
                           style={{
                             background: `linear-gradient(135deg, ${product.color || '#C9A227'}12, ${product.color || '#C9A227'}24)`,
+                            borderColor: 'var(--color-border)'
                           }}
                         >
                           {product.image ? (
@@ -154,7 +178,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                       {/* Status */}
                       <td className="px-6 py-4">
                         <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-fade"
                           style={{
                             backgroundColor: isOutOfStock ? '#FEE2E2' : '#D1FAE5',
                             color:           isOutOfStock ? '#991B1B' : '#065F46',
@@ -166,7 +190,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
 
                       {/* Featured */}
                       <td className="px-6 py-4">
-                        {product.featured || product.isBestseller ? (
+                        {product.featured ? (
                           <span className="text-amber-500 text-base">★</span>
                         ) : (
                           <span className="text-neutral-300 dark:text-neutral-700">—</span>
@@ -177,8 +201,8 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handleEditClick(product)}
-                            className="p-1.5 rounded-lg border hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                            onClick={() => onEditProduct(product)}
+                            className="p-1.5 rounded-lg border hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Edit Product"
                           >
@@ -186,7 +210,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                           </button>
                           <button
                             onClick={() => onDeleteProduct(product.id, product.name)}
-                            className="p-1.5 rounded-lg border hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 text-neutral-600 dark:text-neutral-400"
+                            className="p-1.5 rounded-lg border hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 text-neutral-600 dark:text-neutral-400 cursor-pointer"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Delete Product"
                           >
@@ -204,15 +228,36 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
 
         {/* Mobile List View (Cards instead of Table) */}
         <div className="block md:hidden divide-y" style={{ divideColor: 'var(--color-border)' }}>
-          {products.map((product) => {
+          {products.map((product, index) => {
             const isOutOfStock = product.availability === 'out-of-stock' || product.inStock === false
             return (
               <div key={product.id} className="p-4 flex gap-3 items-center">
+                {/* Mobile Up/Down controls */}
+                <div className="flex flex-col gap-1 items-center shrink-0 pr-1">
+                  <button
+                    onClick={() => onMoveUp(product.id)}
+                    disabled={index === 0}
+                    className="p-1 rounded border hover:bg-neutral-50 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                    style={{ borderColor: 'var(--color-border)' }}
+                  >
+                    <ArrowUp size={10} />
+                  </button>
+                  <button
+                    onClick={() => onMoveDown(product.id)}
+                    disabled={index === products.length - 1}
+                    className="p-1 rounded border hover:bg-neutral-50 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                    style={{ borderColor: 'var(--color-border)' }}
+                  >
+                    <ArrowDown size={10} />
+                  </button>
+                </div>
+
                 {/* Image */}
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 select-none"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 select-none overflow-hidden border"
                   style={{
                     background: `linear-gradient(135deg, ${product.color || '#C9A227'}12, ${product.color || '#C9A227'}24)`,
+                    borderColor: 'var(--color-border)'
                   }}
                 >
                   {product.image ? (
@@ -231,7 +276,7 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                     <span className="font-body text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
                       {formatCurrency(product.sellingPrice, 'INR').replace('INR', '₹').replace(/\s/g, '')}
                     </span>
-                    <span className="text-[10px] text-neutral-300">•</span>
+                    <span className="text-neutral-300">•</span>
                     <span className="font-body text-[10px] uppercase text-neutral-400">
                       {product.category.replace('-', ' ')}
                     </span>
@@ -251,15 +296,15 @@ export default function ProductList({ products = [], onDeleteProduct, onResetDef
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => handleEditClick(product)}
-                      className="p-1 rounded-lg border hover:bg-neutral-100 text-neutral-500"
+                      onClick={() => onEditProduct(product)}
+                      className="p-1 rounded-lg border hover:bg-neutral-100 text-neutral-500 cursor-pointer"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Edit size={12} />
                     </button>
                     <button
                       onClick={() => onDeleteProduct(product.id, product.name)}
-                      className="p-1 rounded-lg border hover:bg-red-50 hover:text-red-600 text-neutral-500"
+                      className="p-1 rounded-lg border hover:bg-red-50 hover:text-red-600 text-neutral-500 cursor-pointer"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Trash size={12} />
