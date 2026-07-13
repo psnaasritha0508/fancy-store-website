@@ -1,7 +1,34 @@
+import { useState } from 'react'
 import { Edit, Trash, Plus, ArrowUp, ArrowDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Button from '@components/ui/Button'
 import { formatCurrency } from '@utils'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ListProductImage Component
+// Gracefully falls back to emoji if the base64 or source url fails to load.
+// ─────────────────────────────────────────────────────────────────────────────
+function ListProductImage({ src, alt, emoji, color }) {
+  const [error, setError] = useState(false)
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-cover"
+        loading="lazy"
+        onError={() => setError(true)}
+      />
+    )
+  }
+
+  return (
+    <span className="text-lg" role="img" aria-label={alt}>
+      {emoji || '✨'}
+    </span>
+  )
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProductList Component
@@ -82,7 +109,7 @@ export default function ProductList({
 
       {/* Responsive Grid/Table container */}
       <div
-        className="w-full rounded-2xl border overflow-hidden"
+        className="w-full rounded-2xl border overflow-hidden animate-fade"
         style={{
           backgroundColor: 'var(--color-card)',
           borderColor:     'var(--color-border)',
@@ -127,7 +154,7 @@ export default function ProductList({
                           <button
                             onClick={() => onMoveUp(product.id)}
                             disabled={index === 0}
-                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-850 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                             title="Move Up"
                           >
                             <ArrowUp size={12} />
@@ -135,7 +162,7 @@ export default function ProductList({
                           <button
                             onClick={() => onMoveDown(product.id)}
                             disabled={index === products.length - 1}
-                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            className="p-0.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-850 text-neutral-400 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                             title="Move Down"
                           >
                             <ArrowDown size={12} />
@@ -152,11 +179,12 @@ export default function ProductList({
                             borderColor: 'var(--color-border)'
                           }}
                         >
-                          {product.image ? (
-                            <img src={product.image} alt="" className="w-full h-full object-cover rounded-lg" />
-                          ) : (
-                            product.emoji || '✨'
-                          )}
+                          <ListProductImage
+                            src={product.image}
+                            alt={product.name}
+                            emoji={product.emoji}
+                            color={product.color}
+                          />
                         </div>
                       </td>
 
@@ -178,7 +206,7 @@ export default function ProductList({
                       {/* Status */}
                       <td className="px-6 py-4">
                         <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-fade"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                           style={{
                             backgroundColor: isOutOfStock ? '#FEE2E2' : '#D1FAE5',
                             color:           isOutOfStock ? '#991B1B' : '#065F46',
@@ -202,7 +230,7 @@ export default function ProductList({
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => onEditProduct(product)}
-                            className="p-1.5 rounded-lg border hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                            className="p-1.5 rounded-lg border hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 cursor-pointer transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Edit Product"
                           >
@@ -210,7 +238,7 @@ export default function ProductList({
                           </button>
                           <button
                             onClick={() => onDeleteProduct(product.id, product.name)}
-                            className="p-1.5 rounded-lg border hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                            className="p-1.5 rounded-lg border hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 text-neutral-600 dark:text-neutral-400 cursor-pointer transition-colors"
                             style={{ borderColor: 'var(--color-border)' }}
                             title="Delete Product"
                           >
@@ -237,7 +265,7 @@ export default function ProductList({
                   <button
                     onClick={() => onMoveUp(product.id)}
                     disabled={index === 0}
-                    className="p-1 rounded border hover:bg-neutral-50 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                    className="p-1 rounded border hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed text-neutral-400 transition-colors"
                     style={{ borderColor: 'var(--color-border)' }}
                   >
                     <ArrowUp size={10} />
@@ -245,7 +273,7 @@ export default function ProductList({
                   <button
                     onClick={() => onMoveDown(product.id)}
                     disabled={index === products.length - 1}
-                    className="p-1 rounded border hover:bg-neutral-50 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                    className="p-1 rounded border hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed text-neutral-400 transition-colors"
                     style={{ borderColor: 'var(--color-border)' }}
                   >
                     <ArrowDown size={10} />
@@ -260,11 +288,12 @@ export default function ProductList({
                     borderColor: 'var(--color-border)'
                   }}
                 >
-                  {product.image ? (
-                    <img src={product.image} alt="" className="w-full h-full object-cover rounded-xl" />
-                  ) : (
-                    product.emoji || '✨'
-                  )}
+                  <ListProductImage
+                    src={product.image}
+                    alt={product.name}
+                    emoji={product.emoji}
+                    color={product.color}
+                  />
                 </div>
 
                 {/* Details */}
@@ -272,12 +301,12 @@ export default function ProductList({
                   <h4 className="font-heading text-sm font-bold truncate" style={{ color: 'var(--color-text)' }}>
                     {product.name}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-body text-xs font-semibold" style={{ color: 'var(--color-primary)' }}>
+                  <div className="flex items-center gap-2 mt-1 font-body text-xs">
+                    <span className="font-semibold" style={{ color: 'var(--color-primary)' }}>
                       {formatCurrency(product.sellingPrice, 'INR').replace('INR', '₹').replace(/\s/g, '')}
                     </span>
-                    <span className="text-neutral-300">•</span>
-                    <span className="font-body text-[10px] uppercase text-neutral-400">
+                    <span className="text-neutral-300 dark:text-neutral-700">•</span>
+                    <span className="font-semibold uppercase tracking-wider text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                       {product.category.replace('-', ' ')}
                     </span>
                   </div>
@@ -297,14 +326,14 @@ export default function ProductList({
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => onEditProduct(product)}
-                      className="p-1 rounded-lg border hover:bg-neutral-100 text-neutral-500 cursor-pointer"
+                      className="p-1 rounded-lg border hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 cursor-pointer transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Edit size={12} />
                     </button>
                     <button
                       onClick={() => onDeleteProduct(product.id, product.name)}
-                      className="p-1 rounded-lg border hover:bg-red-50 hover:text-red-600 text-neutral-500 cursor-pointer"
+                      className="p-1 rounded-lg border hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 text-neutral-500 cursor-pointer transition-colors"
                       style={{ borderColor: 'var(--color-border)' }}
                     >
                       <Trash size={12} />

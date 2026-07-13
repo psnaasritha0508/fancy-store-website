@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye } from 'lucide-react'
 import { useProductModal } from '@context/ProductModalContext'
@@ -6,11 +7,12 @@ import ProductPrice from './ProductPrice'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable ProductCard Component
-// Removes "Add to Cart" button, clicking card opens ProductModal
+// Handles image load failures gracefully by falling back to emoji placeholder.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProductCard({ product, index = 0 }) {
   const { openModal } = useProductModal()
+  const [imageError, setImageError] = useState(false)
 
   const discount = Math.round(
     ((product.markedPrice - product.sellingPrice) / product.markedPrice) * 100,
@@ -50,12 +52,13 @@ export default function ProductCard({ product, index = 0 }) {
           background: `linear-gradient(135deg, ${product.color || '#C9A227'}12, ${product.color || '#C9A227'}24)`,
         }}
       >
-        {product.image ? (
+        {product.image && !imageError ? (
           <img
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2.5">

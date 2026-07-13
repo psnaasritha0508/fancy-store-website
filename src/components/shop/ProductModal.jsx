@@ -19,6 +19,12 @@ export default function ProductModal() {
   
   // WhatsApp settings state
   const [whatsapp, setWhatsapp] = useState('919876543210')
+  const [imageError, setImageError] = useState(false)
+
+  // Reset image error state whenever product switches
+  useEffect(() => {
+    setImageError(false)
+  }, [selectedProduct])
 
   useEffect(() => {
     const loadSettings = () => {
@@ -133,13 +139,14 @@ export default function ProductModal() {
               className="w-full md:w-1/2 aspect-square md:aspect-auto md:h-full relative overflow-hidden select-none bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center shrink-0 border-b md:border-b-0 md:border-r"
               style={{ borderColor: 'var(--color-border)' }}
             >
-              {selectedProduct.image ? (
+              {selectedProduct.image && !imageError ? (
                 <motion.img
                   src={selectedProduct.image}
                   alt={selectedProduct.name}
                   className="w-full h-full object-cover origin-center"
                   whileHover={{ scale: 1.08 }}
                   transition={{ duration: 0.35, ease: 'easeOut' }}
+                  onError={() => setImageError(true)}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-3 py-12">

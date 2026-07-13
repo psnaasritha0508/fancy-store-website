@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { STORE_NAME, STORE_LOGO, SPLASH_DURATION_MS } from '@constants'
+import { SPLASH_DURATION_MS } from '@constants'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SplashScreen
 // Shows only on initial page load / browser refresh (not on SPA navigation).
 // Tracks via sessionStorage so it only appears once per browser session.
+// Loads values dynamically from storageService settings.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SESSION_KEY = 'kf_splash_shown'
@@ -15,6 +17,18 @@ export default function SplashScreen({ onComplete }) {
     // Only show if not yet shown in this browser session
     return !sessionStorage.getItem(SESSION_KEY)
   })
+  
+  const [brand, setBrand] = useState({ name: 'Krishna Fancies', logo: '/logo.png' })
+
+  useEffect(() => {
+    const settings = storageService.getSettings()
+    if (settings && settings.storeInfo) {
+      setBrand({
+        name: settings.storeInfo.name,
+        logo: settings.storeInfo.logo
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (!visible) {
@@ -65,8 +79,8 @@ export default function SplashScreen({ onComplete }) {
               transition={{ delay: 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             >
               <img
-                src={STORE_LOGO}
-                alt={`${STORE_NAME} logo`}
+                src={brand.logo}
+                alt={`${brand.name} logo`}
                 className="w-44 h-44 sm:w-52 sm:h-52 object-contain drop-shadow-md"
                 draggable={false}
               />
@@ -77,10 +91,10 @@ export default function SplashScreen({ onComplete }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.6, ease: 'easeOut' }}
-              className="font-heading text-3xl sm:text-4xl font-bold tracking-tight"
+              className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-center px-4"
               style={{ color: '#C9A227' }}
             >
-              {STORE_NAME}
+              {brand.name}
             </motion.h1>
 
             {/* Animated underline */}

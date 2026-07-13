@@ -16,76 +16,93 @@ import {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable Storage Service
-// Powered by LocalStorage. Swappable for an API call later.
-// Manages: Products, Categories, and Website Settings (Hero, Banner, Store Info, About)
+// Swappable error-resilient client storage module.
+// Protects against corrupted storage entries, restoring factory defaults on error.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PRODUCTS_KEY = 'kf_products_data'
 const CATEGORIES_KEY = 'kf_categories_data'
 const SETTINGS_KEY = 'kf_settings_data'
 
+function getDefaultSettings() {
+  return {
+    storeInfo: {
+      name:            STORE_NAME,
+      tagline:         STORE_TAGLINE,
+      phone:           STORE_PHONE,
+      whatsapp:        STORE_WHATSAPP,
+      email:           STORE_EMAIL,
+      address:         STORE_ADDRESS,
+      instagram:       STORE_INSTAGRAM,
+      instagramHandle: STORE_INSTAGRAM_HANDLE,
+      googleMaps:      STORE_GOOGLE_MAPS,
+      hours:           STORE_HOURS,
+      logo:            STORE_LOGO
+    },
+    hero: {
+      title:        '50+ Years of Trusted Service',
+      subtitle:     'Your One-Stop Destination for Fancy, Beauty & Everyday Essentials.',
+      primaryCta:   'Shop Now',
+      secondaryCta: 'Visit Store',
+      bgImage:      '/hero-bg.png'
+    },
+    seasonalBanner: {
+      active:   true,
+      style:    'Festival', // Festival, Offers, New Arrivals, Announcement
+      badge:    'Festival Special',
+      headline: 'Festival Collection Now Available',
+      subtext:  'Visit Krishna Fancies for exciting seasonal arrivals — bangles, jewellery sets, festive wear accessories & more.',
+      cta:      'Shop Festival Collection',
+      image:    '/banner-bg.png'
+    },
+    homepageVisibility: {
+      featuredProducts: true,
+      categories:       true,
+      whyChooseUs:      true,
+      seasonalBanner:   true,
+      visitStore:       true,
+      finalCta:         true
+    },
+    aboutPage: {
+      story: [
+        { year: '1970s', title: 'The Humble Beginning', description: 'Krishna Fancies opened its doors as a small neighborhood shop in Chilakaluripet, committed to bringing quality fancy goods and bangles to our local community.' },
+        { year: '1990s', title: 'Expansion & Variety', description: 'Over two decades, we expanded our catalog to include premium cosmetics, gift articles, and everyday vanity accessories, becoming a household name.' },
+        { year: '2010s', title: 'Generation of Trust', description: 'Generations of families made us their first choice for wedding jewellery collections, festival decorations, and kids novelty items.' },
+        { year: 'Present Day', title: 'Digital Era of Trust', description: 'Today, we combine 50+ years of traditional trust with modern convenience, allowing you to browse catalog items online and message us directly.' }
+      ],
+      mission: 'To curate premium quality beauty, cosmetic, and fancy products that celebrate tradition and everyday styling, offered with friendly service and fair pricing.',
+      vision: 'To remain the most trusted one-stop vanity shopping destination for families, bridging generations through service excellence and product variety.'
+    }
+  }
+}
+
 export const storageService = {
   /**
    * Initializes local storage with defaults if empty
    */
   initialize() {
-    if (!localStorage.getItem(PRODUCTS_KEY)) {
-      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
-    }
-    if (!localStorage.getItem(CATEGORIES_KEY)) {
-      localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
-    }
-    if (!localStorage.getItem(SETTINGS_KEY)) {
-      const defaultSettings = {
-        storeInfo: {
-          name:            STORE_NAME,
-          tagline:         STORE_TAGLINE,
-          phone:           STORE_PHONE,
-          whatsapp:        STORE_WHATSAPP,
-          email:           STORE_EMAIL,
-          address:         STORE_ADDRESS,
-          instagram:       STORE_INSTAGRAM,
-          instagramHandle: STORE_INSTAGRAM_HANDLE,
-          googleMaps:      STORE_GOOGLE_MAPS,
-          hours:           STORE_HOURS,
-          logo:            STORE_LOGO
-        },
-        hero: {
-          title:        '50+ Years of Trusted Service',
-          subtitle:     'Your One-Stop Destination for Fancy, Beauty & Everyday Essentials.',
-          primaryCta:   'Shop Now',
-          secondaryCta: 'Visit Store',
-          bgImage:      '/hero-bg.png'
-        },
-        seasonalBanner: {
-          active:   true,
-          style:    'Festival', // Festival, Offers, New Arrivals, Announcement
-          badge:    'Festival Special',
-          headline: 'Festival Collection Now Available',
-          subtext:  'Visit Krishna Fancies for exciting seasonal arrivals — bangles, jewellery sets, festive wear accessories & more.',
-          cta:      'Shop Festival Collection',
-          image:    '/banner-bg.png'
-        },
-        homepageVisibility: {
-          featuredProducts: true,
-          categories:       true,
-          whyChooseUs:      true,
-          seasonalBanner:   true,
-          visitStore:       true,
-          finalCta:         true
-        },
-        aboutPage: {
-          story: [
-            { year: '1970s', title: 'The Humble Beginning', description: 'Krishna Fancies opened its doors as a small neighborhood shop in Chilakaluripet, committed to bringing quality fancy goods and bangles to our local community.' },
-            { year: '1990s', title: 'Expansion & Variety', description: 'Over two decades, we expanded our catalog to include premium cosmetics, gift articles, and everyday vanity accessories, becoming a household name.' },
-            { year: '2010s', title: 'Generation of Trust', description: 'Generations of families made us their first choice for wedding jewellery collections, festival decorations, and kids novelty items.' },
-            { year: 'Present Day', title: 'Digital Era of Trust', description: 'Today, we combine 50+ years of traditional trust with modern convenience, allowing you to browse catalog items online and message us directly.' }
-          ],
-          mission: 'To curate premium quality beauty, cosmetic, and fancy products that celebrate tradition and everyday styling, offered with friendly service and fair pricing.',
-          vision: 'To remain the most trusted one-stop vanity shopping destination for families, bridging generations through service excellence and product variety.'
-        }
+    try {
+      if (!localStorage.getItem(PRODUCTS_KEY)) {
+        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
       }
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings))
+    } catch (e) {
+      console.error('Failed to init products storage:', e)
+    }
+
+    try {
+      if (!localStorage.getItem(CATEGORIES_KEY)) {
+        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
+      }
+    } catch (e) {
+      console.error('Failed to init categories storage:', e)
+    }
+
+    try {
+      if (!localStorage.getItem(SETTINGS_KEY)) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(getDefaultSettings()))
+      }
+    } catch (e) {
+      console.error('Failed to init settings storage:', e)
     }
   },
 
@@ -94,33 +111,30 @@ export const storageService = {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Fetch all settings from storage
+   * Fetch all settings from storage. Self-heals if payload is corrupted.
    * @returns {object} Settings payload
    */
   getSettings() {
     this.initialize()
     try {
-      const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
-      
-      // Auto-migrate if aboutPage properties are missing
-      if (parsed.storeInfo && !parsed.aboutPage) {
-        parsed.aboutPage = {
-          story: [
-            { year: '1970s', title: 'The Humble Beginning', description: 'Krishna Fancies opened its doors as a small neighborhood shop in Chilakaluripet, committed to bringing quality fancy goods and bangles to our local community.' },
-            { year: '1990s', title: 'Expansion & Variety', description: 'Over two decades, we expanded our catalog to include premium cosmetics, gift articles, and everyday vanity accessories, becoming a household name.' },
-            { year: '2010s', title: 'Generation of Trust', description: 'Generations of families made us their first choice for wedding jewellery collections, festival decorations, and kids novelty items.' },
-            { year: 'Present Day', title: 'Digital Era of Trust', description: 'Today, we combine 50+ years of traditional trust with modern convenience, allowing you to browse catalog items online and message us directly.' }
-          ],
-          mission: 'To curate premium quality beauty, cosmetic, and fancy products that celebrate tradition and everyday styling, offered with friendly service and fair pricing.',
-          vision: 'To remain the most trusted one-stop vanity shopping destination for families, bridging generations through service excellence and product variety.'
-        }
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parsed))
-      }
+      const stored = localStorage.getItem(SETTINGS_KEY)
+      if (!stored) return getDefaultSettings()
 
+      const parsed = JSON.parse(stored)
+      // Check for core parameters to determine payload health
+      if (!parsed.storeInfo || !parsed.hero || !parsed.seasonalBanner || !parsed.homepageVisibility || !parsed.aboutPage) {
+        throw new Error('Required configuration fields are missing.')
+      }
       return parsed
     } catch (e) {
-      console.error('Error parsing settings:', e)
-      return {}
+      console.warn('Recovering from corrupted settings payload. Resetting default values:', e)
+      const fallback = getDefaultSettings()
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(fallback))
+      } catch (err) {
+        console.error('Could not write fallback settings to storage:', err)
+      }
+      return fallback
     }
   },
 
@@ -129,8 +143,12 @@ export const storageService = {
    * @param {object} settings Settings payload
    */
   saveSettings(settings) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
-    window.dispatchEvent(new Event('storage'))
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+      window.dispatchEvent(new Event('storage'))
+    } catch (e) {
+      console.error('Failed to save settings:', e)
+    }
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -140,17 +158,32 @@ export const storageService = {
   getProducts() {
     this.initialize()
     try {
-      const items = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]')
+      const stored = localStorage.getItem(PRODUCTS_KEY)
+      if (!stored) return PRODUCTS
+
+      const items = JSON.parse(stored)
+      if (!Array.isArray(items)) {
+        throw new Error('Products payload is not a valid list.')
+      }
       return items.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     } catch (e) {
-      console.error('Error parsing products data:', e)
+      console.warn('Recovering from corrupted products payload. Resetting default product list:', e)
+      try {
+        localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
+      } catch (err) {
+        console.error('Could not write fallback products to storage:', err)
+      }
       return PRODUCTS
     }
   },
 
   saveProducts(products) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
-    window.dispatchEvent(new Event('storage'))
+    try {
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
+      window.dispatchEvent(new Event('storage'))
+    } catch (e) {
+      console.error('Failed to save products:', e)
+    }
   },
 
   deleteProduct(id) {
@@ -222,16 +255,32 @@ export const storageService = {
   getCategories() {
     this.initialize()
     try {
-      return JSON.parse(localStorage.getItem(CATEGORIES_KEY) || '[]')
+      const stored = localStorage.getItem(CATEGORIES_KEY)
+      if (!stored) return CATEGORIES
+
+      const items = JSON.parse(stored)
+      if (!Array.isArray(items)) {
+        throw new Error('Categories payload is not a valid list.')
+      }
+      return items
     } catch (e) {
-      console.error('Error parsing categories data:', e)
+      console.warn('Recovering from corrupted categories payload. Resetting default categories:', e)
+      try {
+        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
+      } catch (err) {
+        console.error('Could not write fallback categories to storage:', err)
+      }
       return CATEGORIES
     }
   },
 
   saveCategories(categories) {
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
-    window.dispatchEvent(new Event('storage'))
+    try {
+      localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+      window.dispatchEvent(new Event('storage'))
+    } catch (e) {
+      console.error('Failed to save categories:', e)
+    }
   },
 
   addCategory(category) {
@@ -302,11 +351,15 @@ export const storageService = {
   // ─────────────────────────────────────────────────────────────────────────────
 
   resetAll() {
-    localStorage.removeItem(SETTINGS_KEY)
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
-    this.initialize()
-    window.dispatchEvent(new Event('storage'))
+    try {
+      localStorage.removeItem(SETTINGS_KEY)
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
+      localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
+      this.initialize()
+      window.dispatchEvent(new Event('storage'))
+    } catch (e) {
+      console.error('Failed to reset storage database:', e)
+    }
     return { products: PRODUCTS, categories: CATEGORIES, settings: this.getSettings() }
   }
 }
