@@ -61,3 +61,9 @@ export const ROUTES = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SPLASH_DURATION_MS = 2200  // total splash display time
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin Authentication Settings
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ADMIN_PASSWORD = 'admin'  // Default admin access password

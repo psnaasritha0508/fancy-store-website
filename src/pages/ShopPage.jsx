@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ShoppingBag, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Container from '@components/ui/Container'
 import {
@@ -9,18 +9,33 @@ import {
   CategoryFilter,
   SortDropdown
 } from '@components/shop'
-import { PRODUCTS } from '@data/products'
 import { STORE_NAME } from '@constants'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ShopPage Component
 // Handles product search, category filtering, sorting, and query param state.
+// Loads data reactively from storageService to reflect admin updates.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('featured')
+  
+  // Dynamic products state from storageService
+  const [products, setProducts] = useState([])
+
+  // Load products on mount and whenever window focus returns (to keep sync)
+  useEffect(() => {
+    setProducts(storageService.getProducts())
+
+    const handleFocus = () => {
+      setProducts(storageService.getProducts())
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
 
   // Get active category from URL search params
   const activeCategory = searchParams.get('category')
@@ -54,7 +69,7 @@ export default function ShopPage() {
 
   // Filter and sort products using useMemo for performance optimization
   const filteredAndSortedProducts = useMemo(() => {
-    let result = [...PRODUCTS]
+    let result = [...products]
 
     // 1. Filter by Category
     if (activeCategory) {
@@ -76,12 +91,10 @@ export default function ShopPage() {
         result.sort((a, b) => b.sellingPrice - a.sellingPrice)
         break
       case 'newest':
-        // Sort by createdDate or just reverse displayOrder as fallback
         result.sort((a, b) => new Date(b.createdDate || '') - new Date(a.createdDate || ''))
         break
       case 'featured':
       default:
-        // Sort by featured first, then by displayOrder
         result.sort((a, b) => {
           if (a.featured && !b.featured) return -1
           if (!a.featured && b.featured) return 1
@@ -91,7 +104,7 @@ export default function ShopPage() {
     }
 
     return result
-  }, [activeCategory, searchQuery, sortBy])
+  }, [products, activeCategory, searchQuery, sortBy])
 
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -131,7 +144,7 @@ export default function ShopPage() {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              products={PRODUCTS}
+              products={products}
             />
 
             <SortDropdown value={sortBy} onChange={setSortBy} />
@@ -141,7 +154,7 @@ export default function ShopPage() {
           <CategoryFilter
             selectedCategory={activeCategory}
             onSelect={handleSelectCategory}
-            products={PRODUCTS}
+            products={products}
           />
         </div>
 
@@ -212,15 +225,14 @@ export default function ShopPage() {
                 <p className="font-body text-sm mb-6" style={{ color: 'var(--color-text-muted)' }}>
                   We couldn&apos;t find any products matching your current filters. Try adjusting your search keyword or selecting a different category.
                 </p>
-                <Button
+                <button
                   id="reset-filters-button"
-                  variant="primary"
-                  size="md"
-                  leftIcon={<RefreshCw size={15} />}
                   onClick={handleResetFilters}
+                  className="inline-flex items-center justify-center font-body font-semibold transition-all duration-[var(--transition-base)] select-none bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-lt)] focus-visible:ring-[var(--color-primary)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-lg)] px-6 py-3 text-sm rounded-xl gap-2 cursor-pointer active:scale-[0.98]"
                 >
+                  <RefreshCw size={15} />
                   Reset Filters
-                </Button>
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
