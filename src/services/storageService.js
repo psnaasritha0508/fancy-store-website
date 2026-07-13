@@ -17,7 +17,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable Storage Service
 // Powered by LocalStorage. Swappable for an API call later.
-// Manages: Products, Categories, and Website Settings (Hero, Banner, Store Info)
+// Manages: Products, Categories, and Website Settings (Hero, Banner, Store Info, About)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PRODUCTS_KEY = 'kf_products_data'
@@ -60,7 +60,7 @@ export const storageService = {
         seasonalBanner: {
           active:   true,
           style:    'Festival', // Festival, Offers, New Arrivals, Announcement
-          badge:    'Festival Collection',
+          badge:    'Festival Special',
           headline: 'Festival Collection Now Available',
           subtext:  'Visit Krishna Fancies for exciting seasonal arrivals — bangles, jewellery sets, festive wear accessories & more.',
           cta:      'Shop Festival Collection',
@@ -73,6 +73,16 @@ export const storageService = {
           seasonalBanner:   true,
           visitStore:       true,
           finalCta:         true
+        },
+        aboutPage: {
+          story: [
+            { year: '1970s', title: 'The Humble Beginning', description: 'Krishna Fancies opened its doors as a small neighborhood shop in Chilakaluripet, committed to bringing quality fancy goods and bangles to our local community.' },
+            { year: '1990s', title: 'Expansion & Variety', description: 'Over two decades, we expanded our catalog to include premium cosmetics, gift articles, and everyday vanity accessories, becoming a household name.' },
+            { year: '2010s', title: 'Generation of Trust', description: 'Generations of families made us their first choice for wedding jewellery collections, festival decorations, and kids novelty items.' },
+            { year: 'Present Day', title: 'Digital Era of Trust', description: 'Today, we combine 50+ years of traditional trust with modern convenience, allowing you to browse catalog items online and message us directly.' }
+          ],
+          mission: 'To curate premium quality beauty, cosmetic, and fancy products that celebrate tradition and everyday styling, offered with friendly service and fair pricing.',
+          vision: 'To remain the most trusted one-stop vanity shopping destination for families, bridging generations through service excellence and product variety.'
         }
       }
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings))
@@ -80,7 +90,7 @@ export const storageService = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Settings Methods (Hero, Banner, Store Info, Visibility)
+  // Settings Methods (Hero, Banner, Store Info, Visibility, About)
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
@@ -90,7 +100,24 @@ export const storageService = {
   getSettings() {
     this.initialize()
     try {
-      return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
+      const parsed = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
+      
+      // Auto-migrate if aboutPage properties are missing
+      if (parsed.storeInfo && !parsed.aboutPage) {
+        parsed.aboutPage = {
+          story: [
+            { year: '1970s', title: 'The Humble Beginning', description: 'Krishna Fancies opened its doors as a small neighborhood shop in Chilakaluripet, committed to bringing quality fancy goods and bangles to our local community.' },
+            { year: '1990s', title: 'Expansion & Variety', description: 'Over two decades, we expanded our catalog to include premium cosmetics, gift articles, and everyday vanity accessories, becoming a household name.' },
+            { year: '2010s', title: 'Generation of Trust', description: 'Generations of families made us their first choice for wedding jewellery collections, festival decorations, and kids novelty items.' },
+            { year: 'Present Day', title: 'Digital Era of Trust', description: 'Today, we combine 50+ years of traditional trust with modern convenience, allowing you to browse catalog items online and message us directly.' }
+          ],
+          mission: 'To curate premium quality beauty, cosmetic, and fancy products that celebrate tradition and everyday styling, offered with friendly service and fair pricing.',
+          vision: 'To remain the most trusted one-stop vanity shopping destination for families, bridging generations through service excellence and product variety.'
+        }
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parsed))
+      }
+
+      return parsed
     } catch (e) {
       console.error('Error parsing settings:', e)
       return {}
@@ -103,7 +130,6 @@ export const storageService = {
    */
   saveSettings(settings) {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
-    // Trigger storage event to update other components/tabs immediately
     window.dispatchEvent(new Event('storage'))
   },
 
@@ -111,10 +137,6 @@ export const storageService = {
   // Product Methods
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Fetch all products from storage, sorted by displayOrder ascending
-   * @returns {Array} List of products
-   */
   getProducts() {
     this.initialize()
     try {
@@ -126,17 +148,11 @@ export const storageService = {
     }
   },
 
-  /**
-   * Saves the entire product array to storage
-   */
   saveProducts(products) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
     window.dispatchEvent(new Event('storage'))
   },
 
-  /**
-   * Delete a single product by ID
-   */
   deleteProduct(id) {
     const products = this.getProducts()
     const updated = products.filter(p => p.id !== id)
@@ -144,9 +160,6 @@ export const storageService = {
     return updated
   },
 
-  /**
-   * Update or add a product by ID
-   */
   updateProduct(id, updatedProduct) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
@@ -170,9 +183,6 @@ export const storageService = {
     return products
   },
 
-  /**
-   * Move product UP (index decreases)
-   */
   moveProductUp(id) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
@@ -189,9 +199,6 @@ export const storageService = {
     return this.getProducts()
   },
 
-  /**
-   * Move product DOWN (index increases)
-   */
   moveProductDown(id) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)

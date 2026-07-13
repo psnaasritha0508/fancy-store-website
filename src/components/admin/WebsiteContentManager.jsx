@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Upload, Eye, EyeOff, Info } from 'lucide-react'
+import { Save, Upload, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import Button from '@components/ui/Button'
 import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WebsiteContentManager Tab Component
-// Edit Hero, Seasonal Banner, Store Info, and section visibilities.
+// Edit Hero, Seasonal Banner, About settings, and section visibilities.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BANNER_STYLES = ['Festival', 'Offers', 'New Arrivals', 'Announcement']
@@ -60,6 +60,12 @@ export default function WebsiteContentManager() {
     finalCta:         true
   })
 
+  const [aboutPage, setAboutPage] = useState({
+    mission: '',
+    vision:  '',
+    story:   []
+  })
+
   useEffect(() => {
     const loaded = storageService.getSettings()
     if (loaded && loaded.storeInfo) {
@@ -68,6 +74,9 @@ export default function WebsiteContentManager() {
       setHero(loaded.hero)
       setSeasonalBanner(loaded.seasonalBanner)
       setHomepageVisibility(loaded.homepageVisibility)
+      if (loaded.aboutPage) {
+        setAboutPage(loaded.aboutPage)
+      }
     }
   }, [])
 
@@ -107,6 +116,13 @@ export default function WebsiteContentManager() {
     reader.readAsDataURL(file)
   }
 
+  // Handle Our Story Timeline Text Changes
+  const handleTimelineChange = (idx, field, value) => {
+    const updatedStory = [...aboutPage.story]
+    updatedStory[idx] = { ...updatedStory[idx], [field]: value }
+    setAboutPage(prev => ({ ...prev, story: updatedStory }))
+  }
+
   // Save Settings Submit Handler
   const handleSaveAll = (e) => {
     e.preventDefault()
@@ -116,15 +132,15 @@ export default function WebsiteContentManager() {
       hero,
       seasonalBanner: {
         ...seasonalBanner,
-        // Auto-assign style name to badge
         badge: `${seasonalBanner.style} Special`
       },
-      homepageVisibility
+      homepageVisibility,
+      aboutPage
     }
 
     storageService.saveSettings(newSettings)
     setSettings(newSettings)
-    toast.success('Website configuration saved successfully! Frontpage is updated.')
+    toast.success('Website configuration saved successfully! All page sections updated.')
   }
 
   if (!settings) return null
@@ -135,10 +151,10 @@ export default function WebsiteContentManager() {
       <div className="flex items-center justify-between gap-4 flex-wrap border-b pb-5" style={{ borderColor: 'var(--color-border)' }}>
         <div>
           <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--color-text)' }}>
-            Website Content & Settings
+            Website Content Settings
           </h2>
           <p className="font-body text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            Customize headings, store contacts, banner campaigns, and section visibilities dynamically.
+            Customize headings, banner campaigns, About timeline story, and section visibilities dynamically.
           </p>
         </div>
         <Button
@@ -346,161 +362,86 @@ export default function WebsiteContentManager() {
             </div>
           </div>
 
-          {/* 3. STORE INFORMATION CONFIG */}
+          {/* 3. ABOUT US PAGE CONFIG */}
           <div
             className="p-6 rounded-3xl border space-y-4"
             style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)' }}
           >
             <h3 className="font-heading text-lg font-bold border-b pb-2 flex items-center gap-2" style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)' }}>
-              <span>📞</span> Store Contact & Information
+              <span>📖</span> About Page Story & Mission
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Store Name</label>
-                <input
-                  type="text"
-                  value={storeInfo.name}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Store Mission Statements</label>
+                <textarea
+                  value={aboutPage.mission}
+                  onChange={(e) => setAboutPage(prev => ({ ...prev, mission: e.target.value }))}
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none resize-none"
                   style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
                   required
                 />
               </div>
-              <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Tagline / Motto</label>
-                <input
-                  type="text"
-                  value={storeInfo.tagline}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, tagline: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Phone Number</label>
-                <input
-                  type="text"
-                  value={storeInfo.phone}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">WhatsApp Number (No +, spaces)</label>
-                <input
-                  type="text"
-                  value={storeInfo.whatsapp}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, whatsapp: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Email Address</label>
-                <input
-                  type="email"
-                  value={storeInfo.email}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Instagram URL</label>
-                <input
-                  type="url"
-                  value={storeInfo.instagram}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, instagram: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                />
-              </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="font-body text-xs font-bold text-neutral-400 uppercase">Google Maps Share Link</label>
-              <input
-                type="url"
-                value={storeInfo.googleMaps}
-                onChange={(e) => setStoreInfo({ ...storeInfo, googleMaps: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
-                style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-              />
-            </div>
-
-            {/* Address fields */}
-            <div className="space-y-3 pt-2">
-              <h4 className="font-heading text-xs font-bold text-neutral-400 uppercase">Store Location Address</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-body text-[10px] text-neutral-400 uppercase font-semibold">Street Address</label>
-                  <input
-                    type="text"
-                    value={storeInfo.address.street}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, address: { ...storeInfo.address, street: e.target.value } })}
-                    className="w-full px-4 py-2 rounded-xl border text-sm focus:outline-none"
-                    style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-body text-[10px] text-neutral-400 uppercase font-semibold">City</label>
-                  <input
-                    type="text"
-                    value={storeInfo.address.city}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, address: { ...storeInfo.address, city: e.target.value } })}
-                    className="w-full px-4 py-2 rounded-xl border text-sm focus:outline-none"
-                    style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                  />
-                </div>
-              </div>
               <div className="space-y-1">
-                <label className="font-body text-[10px] text-neutral-400 uppercase font-semibold">Full Address Text (Single Line)</label>
-                <input
-                  type="text"
-                  value={storeInfo.address.full}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, address: { ...storeInfo.address, full: e.target.value } })}
-                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Store Vision Statements</label>
+                <textarea
+                  value={aboutPage.vision}
+                  onChange={(e) => setAboutPage(prev => ({ ...prev, vision: e.target.value }))}
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none resize-none"
                   style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
                   required
                 />
               </div>
-            </div>
 
-            {/* Business Hours */}
-            <div className="space-y-3 pt-2">
-              <h4 className="font-heading text-xs font-bold text-neutral-400 uppercase">Business Timings</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-body text-[10px] text-neutral-400 uppercase font-semibold">Weekdays (e.g. Mon – Sat)</label>
-                  <input
-                    type="text"
-                    value={storeInfo.hours.weekdays}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, hours: { ...storeInfo.hours, weekdays: e.target.value } })}
-                    className="w-full px-4 py-2 rounded-xl border text-sm focus:outline-none"
-                    style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-body text-[10px] text-neutral-400 uppercase font-semibold">Sunday</label>
-                  <input
-                    type="text"
-                    value={storeInfo.hours.sunday}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, hours: { ...storeInfo.hours, sunday: e.target.value } })}
-                    className="w-full px-4 py-2 rounded-xl border text-sm focus:outline-none"
-                    style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-                    required
-                  />
+              {/* Our Story Timeline items editor */}
+              <div className="space-y-3 pt-2">
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Our Story Timeline Milestones</label>
+                <div className="space-y-4">
+                  {aboutPage.story.map((item, idx) => (
+                    <div key={idx} className="p-4 border rounded-xl space-y-2 bg-[var(--color-bg-alt)]" style={{ borderColor: 'var(--color-border)' }}>
+                      <div className="grid grid-cols-4 gap-3">
+                        <div className="col-span-1 space-y-1">
+                          <label className="font-body text-[10px] text-neutral-400 uppercase">Year / Label</label>
+                          <input
+                            type="text"
+                            value={item.year}
+                            onChange={(e) => handleTimelineChange(idx, 'year', e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-lg border text-xs focus:outline-none"
+                            style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                          />
+                        </div>
+                        <div className="col-span-3 space-y-1">
+                          <label className="font-body text-[10px] text-neutral-400 uppercase">Milestone Title</label>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleTimelineChange(idx, 'title', e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-lg border text-xs focus:outline-none"
+                            style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-body text-[10px] text-neutral-400 uppercase">Milestone Description</label>
+                        <textarea
+                          value={item.description}
+                          onChange={(e) => handleTimelineChange(idx, 'description', e.target.value)}
+                          rows={2}
+                          className="w-full px-3 py-1.5 rounded-lg border text-xs focus:outline-none resize-none"
+                          style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
 
         {/* Right Side Column: Visibility Sidebar Controls */}
