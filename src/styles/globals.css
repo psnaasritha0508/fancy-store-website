@@ -1,0 +1,202 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Google Fonts — Playfair Display (headings) + Lato (body)
+   Premium pairing for a luxury retail experience
+───────────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CSS Custom Properties — Color System
+───────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Brand Colors */
+  --color-primary:     #7B4B6A; /* Dusty Plum */
+  --color-primary-lt:  #9E6A8A;
+  --color-primary-dk:  #5C3450;
+
+  --color-secondary:   #C9A227; /* Luxury Gold */
+  --color-secondary-lt:#DEAD4A;
+  --color-secondary-dk:#A07E18;
+
+  --color-accent:      #2d6b4c; /* Forest Green */
+  --color-accent-lt:   #3d8a63;
+  --color-accent-dk:   #1c4332;
+
+  /* Surface Colors */
+  --color-bg:          #FDFAF5; /* Warm Ivory */
+  --color-bg-alt:      #FAF5EC;
+  --color-card:        #FFFFFF;
+  --color-card-hover:  #FFFEF9;
+
+  /* Text Colors */
+  --color-text:        #2C2C2C; /* Charcoal */
+  --color-text-muted:  #6B6B6B;
+  --color-text-light:  #9A9A9A;
+  --color-text-inverse:#FFFFFF;
+
+  /* Border */
+  --color-border:      #E8E0D4;
+  --color-border-focus:#7B4B6A;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 4px 0 rgba(44, 44, 44, 0.06);
+  --shadow-md:   0 4px 16px 0 rgba(44, 44, 44, 0.10);
+  --shadow-lg:   0 8px 32px 0 rgba(123, 75, 106, 0.15);
+  --shadow-gold: 0 4px 20px 0 rgba(201, 162, 39, 0.25);
+
+  /* Spacing */
+  --navbar-height: 4rem;
+
+  /* Transitions */
+  --transition-fast:   150ms ease;
+  --transition-base:   250ms ease;
+  --transition-slow:   350ms ease;
+}
+
+/* Dark Mode Override */
+.dark {
+  --color-bg:          #1A1118;
+  --color-bg-alt:      #231A20;
+  --color-card:        #2A1F27;
+  --color-card-hover:  #321F2D;
+
+  --color-text:        #F0E8EC;
+  --color-text-muted:  #B8A8B2;
+  --color-text-light:  #806878;
+
+  --color-border:      #3D2E38;
+
+  --shadow-md:   0 4px 16px 0 rgba(0, 0, 0, 0.40);
+  --shadow-lg:   0 8px 32px 0 rgba(123, 75, 106, 0.35);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base Styles
+───────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: 'Lato', system-ui, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background-color var(--transition-base), color var(--transition-base);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    line-height: 1.25;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Component Utilities
+───────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .container-site {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-12 sm:py-16 lg:py-24;
+  }
+
+  .card-base {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 0.875rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+  }
+
+  .card-base:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .text-gradient-plum {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .divider-gold {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
+    border: none;
+    margin: 1rem 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar Styling
+───────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dk);
+}

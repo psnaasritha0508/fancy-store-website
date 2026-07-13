@@ -1,0 +1,65 @@
+import { Outlet, ScrollRestoration } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import Navbar from '@components/layout/Navbar'
+import Footer from '@components/layout/Footer'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Layout — wraps all primary routes
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function MainLayout() {
+  return (
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+    >
+      {/* Global toast notifications */}
+      <Toaster
+        position="top-center"
+        gutter={12}
+        toastOptions={{
+          duration: 4000,
+          style: {
+            fontFamily: "'Lato', sans-serif",
+            fontSize:   '0.875rem',
+            background: 'var(--color-card)',
+            color:      'var(--color-text)',
+            border:     '1px solid var(--color-border)',
+            boxShadow:  'var(--shadow-md)',
+            borderRadius: '0.75rem',
+            padding:    '0.75rem 1rem',
+          },
+          success: {
+            iconTheme: {
+              primary:    '#2d6b4c',
+              secondary:  '#FFFFFF',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary:    '#DC2626',
+              secondary:  '#FFFFFF',
+            },
+          },
+        }}
+      />
+
+      {/* Sticky navbar */}
+      <Navbar />
+
+      {/* Main content — offset by navbar height */}
+      <main
+        className="flex-1 w-full"
+        style={{ paddingTop: 'var(--navbar-height)' }}
+      >
+        <Outlet />
+      </main>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Restore scroll position on route change */}
+      <ScrollRestoration />
+    </div>
+  )
+}
