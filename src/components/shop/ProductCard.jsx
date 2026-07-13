@@ -1,24 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Eye } from 'lucide-react'
+import { Eye, MessageCircle } from 'lucide-react'
 import { useProductModal } from '@context/ProductModalContext'
 import AvailabilityBadge from './AvailabilityBadge'
 import ProductPrice from './ProductPrice'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable ProductCard Component
 // Handles image load failures gracefully by falling back to emoji placeholder.
+// Includes a direct WhatsApp Shop action button.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProductCard({ product, index = 0 }) {
   const { openModal } = useProductModal()
   const [imageError, setImageError] = useState(false)
+  const [whatsapp, setWhatsapp] = useState('919848123954')
 
   const discount = Math.round(
     ((product.markedPrice - product.sellingPrice) / product.markedPrice) * 100,
   )
 
   const isOutOfStock = product.availability === 'out-of-stock' || product.inStock === false
+
+  useEffect(() => {
+    const settings = storageService.getSettings()
+    if (settings && settings.storeInfo) {
+      setWhatsapp(settings.storeInfo.whatsapp)
+    }
+  }, [])
+
+  const handleWhatsAppOrder = (e) => {
+    e.stopPropagation() // Prevent opening the details modal
+    const message = encodeURIComponent(`Hi! I'm interested in ordering "${product.name}" (Price: ₹${product.sellingPrice}).`)
+    window.open(`https://wa.me/${whatsapp}?text=${message}`, '_blank')
+  }
 
   return (
     <motion.div
@@ -137,29 +153,42 @@ export default function ProductCard({ product, index = 0 }) {
       </div>
 
       {/* ── Product Information ─────────────────────────────────── */}
-      <div className="flex flex-col flex-1 p-4">
-        {/* Name */}
-        <h3
-          className="font-heading text-sm sm:text-base font-semibold mb-1 line-clamp-2 leading-snug group-hover:text-[var(--color-primary)] transition-colors duration-200"
-          style={{ color: 'var(--color-text)' }}
-        >
-          {product.name}
-        </h3>
+      <div className="flex flex-col flex-1 p-4 justify-between">
+        <div className="space-y-1">
+          {/* Name */}
+          <h3
+            className="font-heading text-sm sm:text-base font-semibold line-clamp-2 leading-snug group-hover:text-[var(--color-primary)] transition-colors duration-200"
+            style={{ color: 'var(--color-text)' }}
+          >
+            {product.name}
+          </h3>
 
-        {/* Category tag */}
-        <span
-          className="font-body text-[10px] font-semibold uppercase tracking-wider mb-2.5 inline-block"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          {product.category.replace('-', ' ')}
-        </span>
+          {/* Category tag */}
+          <span
+            className="font-body text-[10px] font-semibold uppercase tracking-wider mb-2 inline-block"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            {product.category.replace('-', ' ')}
+          </span>
+        </div>
 
-        {/* Pricing */}
-        <ProductPrice
-          markedPrice={product.markedPrice}
-          sellingPrice={product.sellingPrice}
-          className="mt-auto"
-        />
+        <div className="mt-auto pt-3 space-y-3">
+          {/* Pricing */}
+          <ProductPrice
+            markedPrice={product.markedPrice}
+            sellingPrice={product.sellingPrice}
+          />
+
+          {/* WhatsApp Direct Shop Button */}
+          <button
+            onClick={handleWhatsAppOrder}
+            disabled={isOutOfStock}
+            className="w-full py-2 px-3 rounded-xl font-body text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all select-none bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-lt)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm hover:shadow active:scale-[0.98]"
+          >
+            <MessageCircle size={14} />
+            Shop Now
+          </button>
+        </div>
       </div>
     </motion.div>
   )

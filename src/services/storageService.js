@@ -40,7 +40,7 @@ function getDefaultSettings() {
       logo:            STORE_LOGO
     },
     hero: {
-      title:        '50+ Years of Trusted Service',
+      title:        'Krishna Fancies',
       subtitle:     'Your One-Stop Destination for Fancy, Beauty & Everyday Essentials.',
       primaryCta:   'Shop Now',
       secondaryCta: 'Visit Store',
@@ -125,6 +125,13 @@ export const storageService = {
       if (!parsed.storeInfo || !parsed.hero || !parsed.seasonalBanner || !parsed.homepageVisibility || !parsed.aboutPage) {
         throw new Error('Required configuration fields are missing.')
       }
+
+      // Auto-migrate duplicate hero title
+      if (parsed.hero && parsed.hero.title === '50+ Years of Trusted Service') {
+        parsed.hero.title = 'Krishna Fancies'
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parsed))
+      }
+
       return parsed
     } catch (e) {
       console.warn('Recovering from corrupted settings payload. Resetting default values:', e)
