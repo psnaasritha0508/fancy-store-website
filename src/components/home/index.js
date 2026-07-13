@@ -1,0 +1,7 @@
+export { default as HeroSection }       from './HeroSection'
+export { default as CategoriesSection } from './CategoriesSection'
+export { default as FeaturedProducts }   from './FeaturedProducts'
+export { default as WhyChooseUs }       from './WhyChooseUs'
+export { default as SeasonalBanner }    from './SeasonalBanner'
+export { default as VisitOurStore }     from './VisitOurStore'
+export { default as FinalCTA }           from './FinalCTA'
