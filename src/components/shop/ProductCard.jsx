@@ -1,17 +1,22 @@
 import { motion } from 'framer-motion'
-import { ShoppingBag } from 'lucide-react'
-import { formatCurrency } from '@utils'
+import { Eye } from 'lucide-react'
+import { useProductModal } from '@context/ProductModalContext'
+import AvailabilityBadge from './AvailabilityBadge'
+import ProductPrice from './ProductPrice'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable ProductCard Component
+// Removes "Add to Cart" button, clicking card opens ProductModal
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProductCard({ product, index = 0 }) {
+  const { openModal } = useProductModal()
+
   const discount = Math.round(
     ((product.markedPrice - product.sellingPrice) / product.markedPrice) * 100,
   )
 
-  const isOutOfStock = product.availability === 'out-of-stock'
+  const isOutOfStock = product.availability === 'out-of-stock' || product.inStock === false
 
   return (
     <motion.div
@@ -19,7 +24,7 @@ export default function ProductCard({ product, index = 0 }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ delay: (index % 8) * 0.05, duration: 0.45, ease: 'easeOut' }}
-      className="group relative flex flex-col rounded-2xl border overflow-hidden"
+      className="group relative flex flex-col rounded-2xl border overflow-hidden cursor-pointer"
       style={{
         backgroundColor: 'var(--color-card)',
         borderColor:     'var(--color-border)',
@@ -27,6 +32,16 @@ export default function ProductCard({ product, index = 0 }) {
         transition:      'box-shadow 0.25s ease, transform 0.25s ease',
       }}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }}
+      onClick={() => openModal(product)}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details of ${product.name}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openModal(product)
+        }
+      }}
     >
       {/* ── Image/Placeholder Area ─────────────────────────── */}
       <div
@@ -89,15 +104,10 @@ export default function ProductCard({ product, index = 0 }) {
 
         {/* Availability Badge */}
         <div className="absolute bottom-2 right-2">
-          <span
-            className="font-body text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{
-              backgroundColor: isOutOfStock ? '#FEE2E2' : '#D1FAE5',
-              color:           isOutOfStock ? '#991B1B' : '#065F46',
-            }}
-          >
-            {isOutOfStock ? 'Sold Out' : 'In Stock'}
-          </span>
+          <AvailabilityBadge
+            availability={product.availability}
+            inStock={product.inStock}
+          />
         </div>
 
         {/* Out of stock overlay */}
@@ -111,13 +121,23 @@ export default function ProductCard({ product, index = 0 }) {
             </span>
           </div>
         )}
+
+        {/* Hover View Details overlay */}
+        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+          <div className="bg-white/95 dark:bg-neutral-900/95 shadow-md px-4 py-2 rounded-xl flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            <Eye size={14} className="text-[var(--color-primary)]" />
+            <span className="font-body text-[11px] font-bold uppercase tracking-wider text-[var(--color-text)]">
+              View Details
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* ── Product Information ─────────────────────────────────── */}
       <div className="flex flex-col flex-1 p-4">
         {/* Name */}
         <h3
-          className="font-heading text-sm sm:text-base font-semibold mb-2 line-clamp-2 leading-snug"
+          className="font-heading text-sm sm:text-base font-semibold mb-1 line-clamp-2 leading-snug group-hover:text-[var(--color-primary)] transition-colors duration-200"
           style={{ color: 'var(--color-text)' }}
         >
           {product.name}
@@ -125,58 +145,18 @@ export default function ProductCard({ product, index = 0 }) {
 
         {/* Category tag */}
         <span
-          className="font-body text-[10px] font-semibold uppercase tracking-wider mb-2 inline-block"
+          className="font-body text-[10px] font-semibold uppercase tracking-wider mb-2.5 inline-block"
           style={{ color: 'var(--color-text-muted)' }}
         >
           {product.category.replace('-', ' ')}
         </span>
 
         {/* Pricing */}
-        <div className="flex items-center gap-2 mt-auto">
-          <span
-            className="font-heading text-lg font-bold"
-            style={{ color: 'var(--color-primary)' }}
-          >
-            {formatCurrency(product.sellingPrice, 'INR').replace('INR', '₹').replace(/\s/g, '')}
-          </span>
-          <span
-            className="font-body text-xs line-through"
-            style={{ color: 'var(--color-text-light)' }}
-          >
-            {formatCurrency(product.markedPrice, 'INR').replace('INR', '₹').replace(/\s/g, '')}
-          </span>
-        </div>
-
-        {/* Add to Cart button (future state trigger) */}
-        <button
-          disabled={isOutOfStock}
-          className="mt-3.5 w-full flex items-center justify-center gap-2 py-2 rounded-xl font-body text-xs font-semibold border transition-all duration-200"
-          style={{
-            borderColor:     isOutOfStock ? 'var(--color-border)' : 'var(--color-primary)',
-            color:           isOutOfStock ? 'var(--color-text-muted)' : 'var(--color-primary)',
-            cursor:          isOutOfStock ? 'not-allowed' : 'pointer',
-            backgroundColor: 'transparent',
-          }}
-          onMouseEnter={e => {
-            if (!isOutOfStock) {
-              e.currentTarget.style.backgroundColor = 'var(--color-primary)'
-              e.currentTarget.style.color = '#FFFFFF'
-            }
-          }}
-          onMouseLeave={e => {
-            if (!isOutOfStock) {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--color-primary)'
-            }
-          }}
-          onClick={(e) => {
-            e.stopPropagation()
-            // Cart integration placeholder for later phase
-          }}
-        >
-          <ShoppingBag size={14} />
-          {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
-        </button>
+        <ProductPrice
+          markedPrice={product.markedPrice}
+          sellingPrice={product.sellingPrice}
+          className="mt-auto"
+        />
       </div>
     </motion.div>
   )

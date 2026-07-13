@@ -2,15 +2,17 @@ import { Outlet, ScrollRestoration } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import Navbar          from '@components/layout/Navbar'
-import Footer          from '@components/layout/Footer'
-import SplashScreen    from '@components/common/SplashScreen'
-import FloatingWhatsApp from '@components/common/FloatingWhatsApp'
-import ScrollToTop     from '@components/common/ScrollToTop'
+import Navbar             from '@components/layout/Navbar'
+import Footer             from '@components/layout/Footer'
+import SplashScreen       from '@components/common/SplashScreen'
+import FloatingWhatsApp   from '@components/common/FloatingWhatsApp'
+import ScrollToTop        from '@components/common/ScrollToTop'
+import { ProductModal }   from '@components/shop'
+import { ProductModalProvider } from '@context/ProductModalContext'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Layout — wraps all primary routes
-// Integrates: SplashScreen → Navbar → Page → Footer → Floating elements
+// Integrates: ProductModalProvider, SplashScreen, Navbar, Page, Footer, modal
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function MainLayout() {
@@ -19,7 +21,7 @@ export default function MainLayout() {
   const handleSplashComplete = useCallback(() => setSplashDone(true), [])
 
   return (
-    <>
+    <ProductModalProvider>
       {/* ── Splash Screen (only on initial load) ────────────────── */}
       <SplashScreen onComplete={handleSplashComplete} />
 
@@ -70,6 +72,9 @@ export default function MainLayout() {
         {/* Footer */}
         <Footer />
 
+        {/* Single global product details modal instance */}
+        <ProductModal />
+
         {/* Floating action buttons */}
         <FloatingWhatsApp />
         <ScrollToTop />
@@ -77,6 +82,6 @@ export default function MainLayout() {
         {/* Restore scroll position on route change */}
         <ScrollRestoration />
       </motion.div>
-    </>
+    </ProductModalProvider>
   )
 }
