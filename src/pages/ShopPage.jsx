@@ -9,7 +9,6 @@ import {
   CategoryFilter,
   SortDropdown
 } from '@components/shop'
-import { STORE_NAME } from '@constants'
 import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,6 +24,7 @@ export default function ShopPage() {
   
   // Dynamic products state from storageService
   const [products, setProducts] = useState([])
+  const [storeName, setStoreName] = useState('Krishna Fancies')
 
   // Load products on mount and whenever window focus returns (to keep sync)
   useEffect(() => {
@@ -40,14 +40,21 @@ export default function ShopPage() {
   // Get active category from URL search params
   const activeCategory = searchParams.get('category')
 
-  // Update document title for SEO
+  // Update document title and settings values for SEO
   useEffect(() => {
-    document.title = `Shop — ${STORE_NAME}`
+    const settings = storageService.getSettings()
+    let currentStoreName = 'Krishna Fancies'
+    if (settings && settings.storeInfo) {
+      currentStoreName = settings.storeInfo.name
+      setStoreName(currentStoreName)
+    }
+
+    document.title = `Shop — ${currentStoreName}`
     const metaDesc = document.querySelector('meta[name="description"]')
     if (metaDesc) {
       metaDesc.setAttribute(
         'content',
-        `Browse our premium catalog of fancy items, bangles, jewellery, cosmetics, and everyday essentials at Krishna Fancies. Filter by categories, sort by price, and search products instantly.`
+        `Browse our premium catalog of fancy items, bangles, jewellery, cosmetics, and everyday essentials at ${currentStoreName}. Filter by categories, sort by price, and search products instantly.`
       )
     }
   }, [])

@@ -17,11 +17,11 @@ import { STORE_NAME, STORE_LOGO } from '@constants'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SECTIONS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'products',  label: 'Products',  icon: Package },
+  { id: 'dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+  { id: 'products',   label: 'Products',   icon: Package },
   { id: 'categories', label: 'Categories', icon: Layers },
   { id: 'featured',   label: 'Featured',   icon: Star },
-  { id: 'banner',     label: 'Banner',     icon: Sparkles },
+  { id: 'content',    label: 'Website Content', icon: Sparkles },
   { id: 'settings',   label: 'Settings',   icon: Settings },
 ]
 

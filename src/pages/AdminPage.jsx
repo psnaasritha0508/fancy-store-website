@@ -7,14 +7,16 @@ import {
   DashboardOverview,
   ProductList,
   CategoryManager,
-  ProductFormModal
+  ProductFormModal,
+  WebsiteContentManager,
+  StoreSettingsManager
 } from '@components/admin'
 import { storageService } from '@services/storageService'
 import { STORE_NAME } from '@constants'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminPage Component
-// Integrates authentication and dashboard tab panels with full CRUD operations.
+// Integrates authentication and dashboard tab panels with full content management.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -96,6 +98,8 @@ export default function AdminPage() {
     return <AdminAuth onSuccess={handleAuthSuccess} />
   }
 
+  const featuredProductsOnly = products.filter(p => p.featured === true)
+
   return (
     <DashboardLayout
       activeSection={activeSection}
@@ -139,52 +143,44 @@ export default function AdminPage() {
             <CategoryManager onSyncRequired={() => setProducts(storageService.getProducts())} />
           )}
 
-          {/* Featured Products Tab Placeholder */}
+          {/* Featured Products Tab */}
           {activeSection === 'featured' && (
-            <div className="py-12 text-center border rounded-2xl p-8 bg-[var(--color-card)] border-[var(--color-border)]">
-              <span className="text-4xl block mb-3">⭐</span>
-              <h3 className="font-heading text-lg font-bold mb-1" style={{ color: 'var(--color-text)' }}>
-                Featured Products Settings
-              </h3>
-              <p className="font-body text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Mark bestsellers and featured spotlight banners. Features are fully integrated with the products list toggle.
-              </p>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                To feature a product, toggle "Featured Product" inside edit forms.
-              </span>
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-heading text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                  Featured Products Spotlight
+                </h2>
+                <p className="font-body text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  You currently have {featuredProductsOnly.length} items highlighted on the Home Page.
+                </p>
+              </div>
+
+              <ProductList
+                products={featuredProductsOnly}
+                onAddProduct={() => {
+                  setEditingProduct(null)
+                  setIsFormOpen(true)
+                }}
+                onEditProduct={(prod) => {
+                  setEditingProduct(prod)
+                  setIsFormOpen(true)
+                }}
+                onDeleteProduct={handleDeleteProduct}
+                onResetDefaults={handleResetDefaults}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+              />
             </div>
           )}
 
-          {/* Seasonal Banner Tab Placeholder */}
-          {activeSection === 'banner' && (
-            <div className="py-12 text-center border rounded-2xl p-8 bg-[var(--color-card)] border-[var(--color-border)]">
-              <span className="text-4xl block mb-3">🎊</span>
-              <h3 className="font-heading text-lg font-bold mb-1" style={{ color: 'var(--color-text)' }}>
-                Seasonal Banner Settings
-              </h3>
-              <p className="font-body text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Change banner headlines, active state, badges, and CTA links.
-              </p>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                Placeholder — Features coming soon
-              </span>
-            </div>
+          {/* Website Content Tab */}
+          {activeSection === 'content' && (
+            <WebsiteContentManager />
           )}
 
-          {/* Settings Tab Placeholder */}
+          {/* Settings Tab */}
           {activeSection === 'settings' && (
-            <div className="py-12 text-center border rounded-2xl p-8 bg-[var(--color-card)] border-[var(--color-border)]">
-              <span className="text-4xl block mb-3">⚙️</span>
-              <h3 className="font-heading text-lg font-bold mb-1" style={{ color: 'var(--color-text)' }}>
-                Admin Portal Settings
-              </h3>
-              <p className="font-body text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Configure password, Google Maps embed, phone, and store timings.
-              </p>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                Placeholder — Features coming soon
-              </span>
-            </div>
+            <StoreSettingsManager />
           )}
         </motion.div>
       </AnimatePresence>

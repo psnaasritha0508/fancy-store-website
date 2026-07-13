@@ -1,20 +1,40 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle } from 'lucide-react'
 import { useProductModal } from '@context/ProductModalContext'
-import { STORE_NAME, STORE_WHATSAPP } from '@constants'
 import Button from '@components/ui/Button'
 import AvailabilityBadge from './AvailabilityBadge'
 import ProductPrice from './ProductPrice'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable ProductModal Component (Focus trapped, accessible modal)
+// Loads store whatsapp dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProductModal() {
   const { selectedProduct, closeModal } = useProductModal()
   const modalRef = useRef(null)
   const closeBtnRef = useRef(null)
+  
+  // WhatsApp settings state
+  const [whatsapp, setWhatsapp] = useState('919876543210')
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setWhatsapp(settings.storeInfo.whatsapp)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
 
   // Listen for keyboard ESC and handle focus trapping
   useEffect(() => {
@@ -49,7 +69,6 @@ export default function ProductModal() {
     }
 
     window.addEventListener('keydown', handleKeyDown)
-    // Focus the close button initially when modal opens
     setTimeout(() => {
       closeBtnRef.current?.focus()
     }, 50)
@@ -60,7 +79,7 @@ export default function ProductModal() {
   if (!selectedProduct) return null
 
   // WhatsApp order link (empty message template per requirement)
-  const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}`
+  const whatsappUrl = `https://wa.me/${whatsapp}`
 
   const hasExpiry = selectedProduct.expiry && selectedProduct.expiry.trim() !== ''
   const isOutOfStock = selectedProduct.availability === 'out-of-stock' || selectedProduct.inStock === false

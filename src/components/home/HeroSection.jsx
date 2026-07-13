@@ -1,15 +1,15 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MapPin } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Container from '@components/ui/Container'
-import { STORE_NAME, STORE_TAGLINE } from '@constants'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HeroSection — Premium split layout with decorative right panel
+// HeroSection — split layout with dynamic storage-driven values
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Stagger container for text animations
 const containerVariants = {
   hidden: {},
   visible: {
@@ -28,13 +28,37 @@ const fadeIn = {
 }
 
 export default function HeroSection() {
+  const [heroSettings, setHeroSettings] = useState(null)
+  const [tagline, setTagline] = useState('50+ Years of Trusted Service')
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.hero) {
+        setHeroSettings(settings.hero)
+      }
+      if (settings && settings.storeInfo) {
+        setTagline(settings.storeInfo.tagline)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  if (!heroSettings) return null
+
   return (
     <section
       className="relative min-h-[92vh] flex items-center overflow-hidden"
       style={{ backgroundColor: 'var(--color-bg)' }}
       aria-label="Hero"
     >
-      {/* ── Right-side decorative hero image ───────────────────────── */}
+      {/* Right-side image */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         variants={fadeIn}
@@ -42,20 +66,18 @@ export default function HeroSection() {
         animate="visible"
       >
         <img
-          src="/hero-bg.png"
+          src={heroSettings.bgImage || '/hero-bg.png'}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"
           style={{ opacity: 0.55 }}
         />
-        {/* Gradient overlay — left side readable, right side image */}
         <div
           className="absolute inset-0"
           style={{
             background: 'linear-gradient(105deg, var(--color-bg) 42%, transparent 75%)',
           }}
         />
-        {/* Bottom fade */}
         <div
           className="absolute bottom-0 left-0 right-0 h-32"
           style={{
@@ -64,7 +86,7 @@ export default function HeroSection() {
         />
       </motion.div>
 
-      {/* ── Decorative corner ornaments ─────────────────────────────── */}
+      {/* Decorative ornaments */}
       <div
         className="absolute top-10 left-4 w-20 h-20 rounded-full opacity-10 pointer-events-none"
         style={{ backgroundColor: 'var(--color-secondary)' }}
@@ -74,7 +96,6 @@ export default function HeroSection() {
         style={{ backgroundColor: 'var(--color-primary)' }}
       />
 
-      {/* ── Main content ─────────────────────────────────────────────── */}
       <Container className="relative z-10 py-20 sm:py-28">
         <motion.div
           className="max-w-xl"
@@ -92,39 +113,29 @@ export default function HeroSection() {
               }}
             >
               <span>⭐</span>
-              Hyderabad's Most Trusted Since 1970s
+              {tagline}
             </span>
           </motion.div>
 
-          {/* Main headline */}
+          {/* Headline */}
           <motion.h1
             variants={fadeUp}
             className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15] mb-5"
             style={{ color: 'var(--color-text)' }}
           >
-            {STORE_TAGLINE.split(' ').slice(0, 3).join(' ')}{' '}
-            <span style={{ color: 'var(--color-primary)' }}>
-              of Trusted{' '}
-            </span>
-            <span
-              className="italic"
-              style={{ color: 'var(--color-secondary)' }}
-            >
-              Service
-            </span>
+            {heroSettings.title}
           </motion.h1>
 
-          {/* Sub-heading */}
+          {/* Subheading */}
           <motion.p
             variants={fadeUp}
             className="font-body text-base sm:text-lg leading-relaxed mb-8 max-w-md"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            Your One-Stop Destination for Fancy, Beauty &amp; Everyday Essentials.
-            Generations of families trust Krishna Fancies for quality and variety.
+            {heroSettings.subtitle}
           </motion.p>
 
-          {/* CTA buttons */}
+          {/* Buttons */}
           <motion.div
             variants={fadeUp}
             className="flex flex-wrap gap-3 mb-10"
@@ -136,7 +147,7 @@ export default function HeroSection() {
                 size="lg"
                 rightIcon={<ArrowRight size={18} />}
               >
-                Shop Now
+                {heroSettings.primaryCta}
               </Button>
             </Link>
 
@@ -147,12 +158,12 @@ export default function HeroSection() {
                 size="lg"
                 leftIcon={<MapPin size={18} />}
               >
-                Visit Store
+                {heroSettings.secondaryCta}
               </Button>
             </Link>
           </motion.div>
 
-          {/* Trust indicators */}
+          {/* Trust stats */}
           <motion.div
             variants={fadeUp}
             className="flex flex-wrap gap-5"
@@ -181,7 +192,7 @@ export default function HeroSection() {
         </motion.div>
       </Container>
 
-      {/* ── Scroll indicator ─────────────────────────────────────────── */}
+      {/* Scroll indicator */}
       <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         initial={{ opacity: 0, y: -10 }}

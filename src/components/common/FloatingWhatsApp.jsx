@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
-import { STORE_NAME, STORE_WHATSAPP } from '@constants'
+import { useState, useEffect } from 'react'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FloatingWhatsApp
 // Sticky bottom-right WhatsApp button with pulse ring and tooltip label.
+// Loads store details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function WhatsAppSVG() {
@@ -16,13 +17,30 @@ function WhatsAppSVG() {
   )
 }
 
-const WHATSAPP_MESSAGE = encodeURIComponent(
-  `Hi ${STORE_NAME}! I'm interested in your products.`
-)
-
 export default function FloatingWhatsApp() {
   const [hovered, setHovered] = useState(false)
-  const href = `https://wa.me/${STORE_WHATSAPP}?text=${WHATSAPP_MESSAGE}`
+  const [storeInfo, setStoreInfo] = useState({ name: 'Krishna Fancies', whatsapp: '919876543210' })
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setStoreInfo(settings.storeInfo)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  const WHATSAPP_MESSAGE = encodeURIComponent(
+    `Hi ${storeInfo.name}! I'm interested in your products.`
+  )
+  const href = `https://wa.me/${storeInfo.whatsapp}?text=${WHATSAPP_MESSAGE}`
 
   return (
     <motion.div

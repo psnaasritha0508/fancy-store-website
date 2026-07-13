@@ -1,28 +1,49 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import Button from '@components/ui/Button'
 import Container from '@components/ui/Container'
-import { SEASONAL_BANNER } from '@data/products'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SeasonalBanner — Configurable promotional banner
-// Content driven by data/products.js → SEASONAL_BANNER
-// Future: pull from Admin Dashboard / CMS
+// Loads details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function SeasonalBanner() {
-  if (!SEASONAL_BANNER.active) return null
+  const [banner, setBanner] = useState(null)
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.seasonalBanner) {
+        setBanner(settings.seasonalBanner)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  if (!banner || !banner.active) return null
+
+  // Link for the CTA button (defaults to filter category matching the style if possible)
+  const ctaLink = `/shop?category=${banner.style.toLowerCase().replace(/\s+/g, '-')}`
 
   return (
     <section
-      className="relative overflow-hidden"
+      className="relative overflow-hidden animate-fade"
       aria-label="Seasonal promotion"
     >
       {/* ── Background image with gradient overlay ────────────────── */}
       <div className="absolute inset-0">
         <img
-          src={SEASONAL_BANNER.image}
+          src={banner.image || '/banner-bg.png'}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"
@@ -50,7 +71,7 @@ export default function SeasonalBanner() {
               className="inline-block font-body text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5"
               style={{ backgroundColor: 'var(--color-secondary)', color: '#2C2C2C' }}
             >
-              {SEASONAL_BANNER.badge}
+              {banner.badge}
             </span>
           </motion.div>
 
@@ -62,7 +83,7 @@ export default function SeasonalBanner() {
             viewport={{ once: true }}
             transition={{ delay: 0.1, duration: 0.6 }}
           >
-            {SEASONAL_BANNER.headline}
+            {banner.headline}
           </motion.h2>
 
           {/* Subtext */}
@@ -74,7 +95,7 @@ export default function SeasonalBanner() {
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            {SEASONAL_BANNER.subtext}
+            {banner.subtext}
           </motion.p>
 
           {/* CTA */}
@@ -84,21 +105,21 @@ export default function SeasonalBanner() {
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.5, type: 'spring', stiffness: 200 }}
           >
-            <Link to={SEASONAL_BANNER.ctaLink}>
+            <Link to={ctaLink}>
               <Button
                 id="seasonal-banner-cta"
                 variant="secondary"
                 size="lg"
                 rightIcon={<ArrowRight size={18} />}
               >
-                {SEASONAL_BANNER.cta}
+                {banner.cta}
               </Button>
             </Link>
           </motion.div>
         </div>
       </Container>
 
-      {/* ── Decorative sparkles ──────────────────────────────────────── */}
+      {/* Decorative sparkles */}
       {['top-6 left-8', 'top-10 right-12', 'bottom-8 left-16', 'bottom-6 right-8'].map((pos, i) => (
         <motion.div
           key={i}
@@ -106,6 +127,7 @@ export default function SeasonalBanner() {
           animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 2 + i * 0.4, repeat: Infinity, delay: i * 0.5 }}
           aria-hidden="true"
+          style={{ color: 'var(--color-secondary)' }}
         >
           ✦
         </motion.div>

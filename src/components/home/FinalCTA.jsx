@@ -1,21 +1,43 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { MessageCircle, Mail } from 'lucide-react'
 import Container from '@components/ui/Container'
 import Button from '@components/ui/Button'
-import { STORE_NAME, STORE_WHATSAPP } from '@constants'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FinalCTA Section
-// Bottom page call-to-action encouraging direct store inquiries
+// Bottom page call-to-action encouraging direct store inquiries.
+// Loads details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function FinalCTA() {
-  const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Hi ${STORE_NAME}! I would like to order some items. Please share details.`)}`
+  const [storeInfo, setStoreInfo] = useState(null)
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setStoreInfo(settings.storeInfo)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  if (!storeInfo) return null
+
+  const whatsappUrl = `https://wa.me/${storeInfo.whatsapp}?text=${encodeURIComponent(`Hi ${storeInfo.name}! I would like to order some items. Please share details.`)}`
 
   return (
     <section
-      className="section-padding relative overflow-hidden"
+      className="section-padding relative overflow-hidden animate-fade"
       style={{ backgroundColor: 'var(--color-bg-alt)' }}
       aria-label="Contact actions"
     >

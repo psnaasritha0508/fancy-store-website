@@ -1,27 +1,42 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, MapPin, MessageCircle, Navigation, Clock } from 'lucide-react'
 import Container from '@components/ui/Container'
 import Button from '@components/ui/Button'
-import {
-  STORE_NAME,
-  STORE_PHONE,
-  STORE_ADDRESS,
-  STORE_GOOGLE_MAPS,
-  STORE_HOURS,
-  STORE_WHATSAPP
-} from '@constants'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VisitOurStore Section
-// Displays full store contact details, map button, and direct action triggers
+// Displays full store contact details, maps, and direct action triggers.
+// Loads details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function VisitOurStore() {
-  const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Hi ${STORE_NAME}, I'd like to ask a question.`)}`
+  const [storeInfo, setStoreInfo] = useState(null)
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setStoreInfo(settings.storeInfo)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  if (!storeInfo) return null
+
+  const whatsappUrl = `https://wa.me/${storeInfo.whatsapp}?text=${encodeURIComponent(`Hi ${storeInfo.name}, I'd like to ask a question.`)}`
 
   return (
     <section
-      className="section-padding"
+      className="section-padding animate-fade"
       style={{ backgroundColor: 'var(--color-bg)' }}
       aria-label="Visit our store"
     >
@@ -61,7 +76,7 @@ export default function VisitOurStore() {
                 <div>
                   <h3 className="font-heading font-semibold text-base mb-1" style={{ color: 'var(--color-text)' }}>Address</h3>
                   <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                    {STORE_ADDRESS.full}
+                    {storeInfo.address.full}
                   </p>
                 </div>
               </div>
@@ -72,8 +87,8 @@ export default function VisitOurStore() {
                 <div>
                   <h3 className="font-heading font-semibold text-base mb-1" style={{ color: 'var(--color-text)' }}>Store Hours</h3>
                   <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                    {STORE_HOURS.weekdays} <br />
-                    {STORE_HOURS.sunday}
+                    {storeInfo.hours.weekdays} <br />
+                    {storeInfo.hours.sunday}
                   </p>
                 </div>
               </div>
@@ -84,7 +99,7 @@ export default function VisitOurStore() {
                 <div>
                   <h3 className="font-heading font-semibold text-base mb-1" style={{ color: 'var(--color-text)' }}>Phone</h3>
                   <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                    {STORE_PHONE}
+                    {storeInfo.phone}
                   </p>
                 </div>
               </div>
@@ -92,7 +107,7 @@ export default function VisitOurStore() {
 
             {/* Quick Actions buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
-              <a href={STORE_GOOGLE_MAPS} target="_blank" rel="noopener noreferrer">
+              <a href={storeInfo.googleMaps} target="_blank" rel="noopener noreferrer">
                 <Button
                   id="visit-google-maps"
                   variant="primary"
@@ -103,7 +118,7 @@ export default function VisitOurStore() {
                 </Button>
               </a>
 
-              <a href={`tel:${STORE_PHONE}`}>
+              <a href={`tel:${storeInfo.phone}`}>
                 <Button
                   id="visit-call-now"
                   variant="outline"
@@ -127,7 +142,7 @@ export default function VisitOurStore() {
             </div>
           </motion.div>
 
-          {/* Right: Embedded Interactive Map or Beautiful Placeholder Map Graphic */}
+          {/* Right: Map Graphic */}
           <motion.div
             className="lg:col-span-6 h-[350px] sm:h-[400px] rounded-2xl overflow-hidden border relative"
             style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card)' }}
@@ -142,12 +157,12 @@ export default function VisitOurStore() {
                 📍
               </div>
               <h3 className="font-heading text-lg font-bold mb-2" style={{ color: 'var(--color-text)' }}>
-                {STORE_NAME} Location
+                {storeInfo.name} Location
               </h3>
               <p className="font-body text-sm max-w-sm mb-6" style={{ color: 'var(--color-text-muted)' }}>
-                Located at {STORE_ADDRESS.street}, {STORE_ADDRESS.city}. Feel free to drop by or contact us if you need help finding directions.
+                Located at {storeInfo.address.street}, {storeInfo.address.city}. Feel free to drop by or contact us if you need help finding directions.
               </p>
-              <a href={STORE_GOOGLE_MAPS} target="_blank" rel="noopener noreferrer">
+              <a href={storeInfo.googleMaps} target="_blank" rel="noopener noreferrer">
                 <Button
                   id="map-get-directions"
                   variant="outline"

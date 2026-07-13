@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Sun, Moon, ShoppingBag } from 'lucide-react'
 import { useTheme } from '@context/ThemeContext'
-import { NAV_LINKS, STORE_NAME, STORE_LOGO } from '@constants'
+import { NAV_LINKS } from '@constants'
 import Container from '@components/ui/Container'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Navbar — Sticky, scroll-aware, mobile-first, with theme toggle
+// Loads brand details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Mobile menu animation variants
@@ -70,6 +72,28 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen]   = useState(false)
   const [scrolled,   setScrolled]     = useState(false)
   const location = useLocation()
+  
+  // Settings state (loads from storage)
+  const [brand, setBrand] = useState({ name: 'Krishna Fancies', logo: '/logo.png' })
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setBrand({
+          name: settings.storeInfo.name,
+          logo: settings.storeInfo.logo
+        })
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
 
   // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
@@ -120,11 +144,11 @@ export default function Navbar() {
             to="/"
             className="flex items-center gap-2.5 shrink-0"
             onClick={closeMobile}
-            aria-label="Krishna Fancies — Home"
+            aria-label={`${brand.name} — Home`}
           >
             <motion.img
-              src={STORE_LOGO}
-              alt="Krishna Fancies logo"
+              src={brand.logo}
+              alt={`${brand.name} logo`}
               className="object-contain"
               style={{ height: scrolled ? '2.2rem' : '2.6rem', transition: 'height 0.3s ease' }}
               draggable={false}
@@ -140,7 +164,7 @@ export default function Navbar() {
                 letterSpacing: '-0.01em',
               }}
             >
-              {STORE_NAME}
+              {brand.name}
             </span>
           </Link>
 
@@ -276,9 +300,9 @@ export default function Navbar() {
                 }}
               >
                 <Link to="/" onClick={closeMobile} className="flex items-center gap-2">
-                  <img src={STORE_LOGO} alt="logo" className="h-9 w-9 object-contain" draggable={false} />
+                  <img src={brand.logo} alt="logo" className="h-9 w-9 object-contain" draggable={false} />
                   <span className="font-heading font-bold text-base" style={{ color: 'var(--color-primary)' }}>
-                    {STORE_NAME}
+                    {brand.name}
                   </span>
                 </Link>
                 <motion.button

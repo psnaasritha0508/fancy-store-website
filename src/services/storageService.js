@@ -1,17 +1,32 @@
 import { PRODUCTS } from '@data/products'
 import { CATEGORIES } from '@data/categories'
+import {
+  STORE_NAME,
+  STORE_TAGLINE,
+  STORE_PHONE,
+  STORE_WHATSAPP,
+  STORE_EMAIL,
+  STORE_ADDRESS,
+  STORE_INSTAGRAM,
+  STORE_INSTAGRAM_HANDLE,
+  STORE_GOOGLE_MAPS,
+  STORE_HOURS,
+  STORE_LOGO
+} from '@constants'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable Storage Service
 // Powered by LocalStorage. Swappable for an API call later.
+// Manages: Products, Categories, and Website Settings (Hero, Banner, Store Info)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PRODUCTS_KEY = 'kf_products_data'
 const CATEGORIES_KEY = 'kf_categories_data'
+const SETTINGS_KEY = 'kf_settings_data'
 
 export const storageService = {
   /**
-   * Initializes local storage with default mock products and categories if empty
+   * Initializes local storage with defaults if empty
    */
   initialize() {
     if (!localStorage.getItem(PRODUCTS_KEY)) {
@@ -20,6 +35,76 @@ export const storageService = {
     if (!localStorage.getItem(CATEGORIES_KEY)) {
       localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
     }
+    if (!localStorage.getItem(SETTINGS_KEY)) {
+      const defaultSettings = {
+        storeInfo: {
+          name:            STORE_NAME,
+          tagline:         STORE_TAGLINE,
+          phone:           STORE_PHONE,
+          whatsapp:        STORE_WHATSAPP,
+          email:           STORE_EMAIL,
+          address:         STORE_ADDRESS,
+          instagram:       STORE_INSTAGRAM,
+          instagramHandle: STORE_INSTAGRAM_HANDLE,
+          googleMaps:      STORE_GOOGLE_MAPS,
+          hours:           STORE_HOURS,
+          logo:            STORE_LOGO
+        },
+        hero: {
+          title:        '50+ Years of Trusted Service',
+          subtitle:     'Your One-Stop Destination for Fancy, Beauty & Everyday Essentials.',
+          primaryCta:   'Shop Now',
+          secondaryCta: 'Visit Store',
+          bgImage:      '/hero-bg.png'
+        },
+        seasonalBanner: {
+          active:   true,
+          style:    'Festival', // Festival, Offers, New Arrivals, Announcement
+          badge:    'Festival Collection',
+          headline: 'Festival Collection Now Available',
+          subtext:  'Visit Krishna Fancies for exciting seasonal arrivals — bangles, jewellery sets, festive wear accessories & more.',
+          cta:      'Shop Festival Collection',
+          image:    '/banner-bg.png'
+        },
+        homepageVisibility: {
+          featuredProducts: true,
+          categories:       true,
+          whyChooseUs:      true,
+          seasonalBanner:   true,
+          visitStore:       true,
+          finalCta:         true
+        }
+      }
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings))
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Settings Methods (Hero, Banner, Store Info, Visibility)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Fetch all settings from storage
+   * @returns {object} Settings payload
+   */
+  getSettings() {
+    this.initialize()
+    try {
+      return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
+    } catch (e) {
+      console.error('Error parsing settings:', e)
+      return {}
+    }
+  },
+
+  /**
+   * Saves settings to storage
+   * @param {object} settings Settings payload
+   */
+  saveSettings(settings) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+    // Trigger storage event to update other components/tabs immediately
+    window.dispatchEvent(new Event('storage'))
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -34,7 +119,6 @@ export const storageService = {
     this.initialize()
     try {
       const items = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]')
-      // Sort primarily by displayOrder ascending
       return items.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     } catch (e) {
       console.error('Error parsing products data:', e)
@@ -44,18 +128,14 @@ export const storageService = {
 
   /**
    * Saves the entire product array to storage
-   * @param {Array} products List of products
    */
   saveProducts(products) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
-    // Trigger storage event to update other tabs immediately
     window.dispatchEvent(new Event('storage'))
   },
 
   /**
    * Delete a single product by ID
-   * @param {string} id Product ID
-   * @returns {Array} Updated product list
    */
   deleteProduct(id) {
     const products = this.getProducts()
@@ -66,22 +146,17 @@ export const storageService = {
 
   /**
    * Update or add a product by ID
-   * @param {string} id Product ID
-   * @param {object} updatedProduct Product payload
-   * @returns {Array} Updated product list
    */
   updateProduct(id, updatedProduct) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
     
-    // Auto-calculate displayOrder if adding a new product
     let finalProduct = { ...updatedProduct }
     if (index === -1 && !finalProduct.displayOrder) {
       const maxOrder = products.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
       finalProduct.displayOrder = maxOrder + 1
     }
 
-    // Clean up fields (ensure isBestseller or other custom flags are not present)
     delete finalProduct.isBestseller
     delete finalProduct.color
 
@@ -96,16 +171,13 @@ export const storageService = {
   },
 
   /**
-   * Swaps displayOrder values to move product UP in the list (towards index 0)
-   * @param {string} id Product ID
-   * @returns {Array} Updated product list
+   * Move product UP (index decreases)
    */
   moveProductUp(id) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
-    if (index <= 0) return products // Already at top
+    if (index <= 0) return products
 
-    // Swap items in array and their displayOrder
     const current = products[index]
     const previous = products[index - 1]
 
@@ -114,20 +186,17 @@ export const storageService = {
     previous.displayOrder = tempOrder
 
     this.saveProducts(products)
-    return this.getProducts() // returns sorted list
+    return this.getProducts()
   },
 
   /**
-   * Swaps displayOrder values to move product DOWN in the list
-   * @param {string} id Product ID
-   * @returns {Array} Updated product list
+   * Move product DOWN (index increases)
    */
   moveProductDown(id) {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
-    if (index === -1 || index >= products.length - 1) return products // Already at bottom
+    if (index === -1 || index >= products.length - 1) return products
 
-    // Swap items in array and their displayOrder
     const current = products[index]
     const next = products[index + 1]
 
@@ -136,17 +205,13 @@ export const storageService = {
     next.displayOrder = tempOrder
 
     this.saveProducts(products)
-    return this.getProducts() // returns sorted list
+    return this.getProducts()
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Category Methods
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Fetch all categories
-   * @returns {Array} List of categories
-   */
   getCategories() {
     this.initialize()
     try {
@@ -157,22 +222,13 @@ export const storageService = {
     }
   },
 
-  /**
-   * Saves categories array
-   * @param {Array} categories List of categories
-   */
   saveCategories(categories) {
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
     window.dispatchEvent(new Event('storage'))
   },
 
-  /**
-   * Add a new category
-   * @param {object} category Category details
-   */
   addCategory(category) {
     const categories = this.getCategories()
-    // Avoid duplicates
     const normalizedLabel = category.label.trim().toLowerCase()
     if (categories.some(c => c.label.trim().toLowerCase() === normalizedLabel)) {
       throw new Error('A category with this name already exists.')
@@ -182,14 +238,10 @@ export const storageService = {
     return categories
   },
 
-  /**
-   * Rename an existing category
-   */
   renameCategory(id, newLabel) {
     const categories = this.getCategories()
     const normalizedLabel = newLabel.trim().toLowerCase()
     
-    // Check duplicates excluding the current category
     if (categories.some(c => c.id !== id && c.label.trim().toLowerCase() === normalizedLabel)) {
       throw new Error('A category with this name already exists.')
     }
@@ -198,17 +250,13 @@ export const storageService = {
     if (index !== -1) {
       const oldId = categories[index].id
       categories[index].label = newLabel.trim()
-      
-      // If label changes, we also update its ID / path reference if they are derived.
-      // But keeping old ID matches previous relationships. We rename the label.
       this.saveCategories(categories)
       
-      // Update all products holding the old category ID to keep integrity
       const products = this.getProducts()
       let updatedAny = false
       products.forEach(p => {
         if (p.category === oldId) {
-          p.category = oldId // keeping ID identical is safest, we renamed label!
+          p.category = oldId
           updatedAny = true
         }
       })
@@ -219,25 +267,17 @@ export const storageService = {
     return categories
   },
 
-  /**
-   * Delete a category
-   * @param {string} id Category ID
-   * @param {string} migrationCategoryId Target category to move products to, or 'delete' to remove products, or 'uncategorized'
-   */
   deleteCategory(id, migrationCategoryId) {
     const categories = this.getCategories()
     const updatedCategories = categories.filter(c => c.id !== id)
     this.saveCategories(updatedCategories)
 
-    // Handle product migration
     const products = this.getProducts()
     let updatedProducts = [...products]
 
     if (migrationCategoryId === 'delete') {
-      // Delete products in this category
       updatedProducts = products.filter(p => p.category !== id)
     } else {
-      // Reassign products to the target category
       updatedProducts = products.map(p => {
         if (p.category === id) {
           return { ...p, category: migrationCategoryId || 'uncategorized' }
@@ -255,10 +295,12 @@ export const storageService = {
   // ─────────────────────────────────────────────────────────────────────────────
 
   resetAll() {
+    localStorage.removeItem(SETTINGS_KEY)
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS))
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(CATEGORIES))
+    this.initialize()
     window.dispatchEvent(new Event('storage'))
-    return { products: PRODUCTS, categories: CATEGORIES }
+    return { products: PRODUCTS, categories: CATEGORIES, settings: this.getSettings() }
   }
 }
 

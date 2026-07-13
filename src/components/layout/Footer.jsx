@@ -1,19 +1,10 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Phone, MapPin, Mail, ExternalLink, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
-import {
-  STORE_NAME,
-  STORE_TAGLINE,
-  STORE_PHONE,
-  STORE_EMAIL,
-  STORE_ADDRESS,
-  STORE_INSTAGRAM,
-  STORE_INSTAGRAM_HANDLE,
-  STORE_GOOGLE_MAPS,
-  STORE_LOGO,
-  NAV_LINKS,
-} from '@constants'
+import { NAV_LINKS } from '@constants'
 import Container from '@components/ui/Container'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inline SVG Icons for social platforms
@@ -49,6 +40,7 @@ function GoogleMapsIcon({ size = 18 }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Footer
+// Loads brand details dynamically from storageService for real-time synchronization.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const linkHoverStyle = {
@@ -58,6 +50,25 @@ const linkHoverStyle = {
 
 export default function Footer() {
   const year = new Date().getFullYear()
+  const [storeInfo, setStoreInfo] = useState(null)
+
+  useEffect(() => {
+    const loadSettings = () => {
+      const settings = storageService.getSettings()
+      if (settings && settings.storeInfo) {
+        setStoreInfo(settings.storeInfo)
+      }
+    }
+    loadSettings()
+    window.addEventListener('focus', loadSettings)
+    window.addEventListener('storage', loadSettings)
+    return () => {
+      window.removeEventListener('focus', loadSettings)
+      window.removeEventListener('storage', loadSettings)
+    }
+  }, [])
+
+  if (!storeInfo) return null
 
   return (
     <footer
@@ -65,18 +76,15 @@ export default function Footer() {
       style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)' }}
     >
       <Container className="pt-14 pb-10">
-        {/* ── Gold divider top ─────────────────────────────────── */}
         <div className="divider-gold mb-10 w-full" />
 
-        {/* ── Main grid ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-
           {/* Column 1 — Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="inline-flex items-center gap-3 mb-4 group">
               <img
-                src={STORE_LOGO}
-                alt={`${STORE_NAME} logo`}
+                src={storeInfo.logo}
+                alt={`${storeInfo.name} logo`}
                 className="h-14 w-14 object-contain group-hover:scale-105 transition-transform duration-300"
                 draggable={false}
               />
@@ -85,11 +93,11 @@ export default function Footer() {
                   className="font-heading text-xl font-bold leading-tight"
                   style={{ color: 'var(--color-primary)' }}
                 >
-                  {STORE_NAME}
+                  {storeInfo.name}
                 </h2>
                 <p className="font-body text-xs font-semibold mt-0.5"
                    style={{ color: 'var(--color-secondary)' }}>
-                  {STORE_TAGLINE}
+                  {storeInfo.tagline}
                 </p>
               </div>
             </Link>
@@ -102,7 +110,7 @@ export default function Footer() {
             {/* Social icons */}
             <div className="flex items-center gap-3">
               <SocialLink
-                href={STORE_INSTAGRAM}
+                href={storeInfo.instagram}
                 label="Instagram"
                 id="footer-instagram"
               >
@@ -110,7 +118,7 @@ export default function Footer() {
               </SocialLink>
 
               <SocialLink
-                href={`https://wa.me/919876543210`}
+                href={`https://wa.me/${storeInfo.whatsapp}`}
                 label="WhatsApp"
                 id="footer-whatsapp"
               >
@@ -118,7 +126,7 @@ export default function Footer() {
               </SocialLink>
 
               <SocialLink
-                href={STORE_GOOGLE_MAPS}
+                href={storeInfo.googleMaps}
                 label="Google Maps"
                 id="footer-maps"
               >
@@ -156,31 +164,31 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href={`tel:${STORE_PHONE}`}
+                  href={`tel:${storeInfo.phone}`}
                   id="footer-phone"
                   className="flex items-start gap-2.5 text-sm transition-colors duration-[var(--transition-fast)]"
                   style={{ color: 'var(--color-text-muted)' }}
                   {...linkHoverStyle}
                 >
                   <Phone size={15} className="mt-0.5 shrink-0" style={{ color: 'var(--color-secondary)' }} />
-                  <span>{STORE_PHONE}</span>
+                  <span>{storeInfo.phone}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${STORE_EMAIL}`}
+                  href={`mailto:${storeInfo.email}`}
                   id="footer-email"
                   className="flex items-start gap-2.5 text-sm transition-colors duration-[var(--transition-fast)]"
                   style={{ color: 'var(--color-text-muted)' }}
                   {...linkHoverStyle}
                 >
                   <Mail size={15} className="mt-0.5 shrink-0" style={{ color: 'var(--color-secondary)' }} />
-                  <span>{STORE_EMAIL}</span>
+                  <span>{storeInfo.email}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={STORE_GOOGLE_MAPS}
+                  href={storeInfo.googleMaps}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="footer-address"
@@ -189,7 +197,7 @@ export default function Footer() {
                   {...linkHoverStyle}
                 >
                   <MapPin size={15} className="mt-0.5 shrink-0" style={{ color: 'var(--color-secondary)' }} />
-                  <span>{STORE_ADDRESS.full}</span>
+                  <span>{storeInfo.address.full}</span>
                 </a>
               </li>
             </ul>
@@ -199,7 +207,7 @@ export default function Footer() {
           <div>
             <FooterHeading>Follow Us</FooterHeading>
             <a
-              href={STORE_INSTAGRAM}
+              href={storeInfo.instagram}
               target="_blank"
               rel="noopener noreferrer"
               id="footer-instagram-handle"
@@ -208,7 +216,7 @@ export default function Footer() {
               {...linkHoverStyle}
             >
               <InstagramIcon size={16} />
-              {STORE_INSTAGRAM_HANDLE}
+              {storeInfo.instagramHandle}
               <ExternalLink size={12} />
             </a>
 
@@ -219,26 +227,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ── Gold divider bottom ───────────────────────────────── */}
         <div className="divider-gold w-full mb-6" />
 
-        {/* ── Bottom bar ─────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <p className="font-body text-xs" style={{ color: 'var(--color-text-light)' }}>
-            © {year} {STORE_NAME}. All rights reserved.
+            © {year} {storeInfo.name}. All rights reserved.
           </p>
           <p className="font-body text-xs flex items-center gap-1" style={{ color: 'var(--color-text-light)' }}>
             Designed with{' '}
             <Heart size={11} fill="currentColor" style={{ color: 'var(--color-primary)' }} />
-            {' '}for {STORE_NAME}
+            {' '}for {storeInfo.name}
           </p>
         </div>
       </Container>
     </footer>
   )
 }
-
-// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function FooterHeading({ children }) {
   return (
