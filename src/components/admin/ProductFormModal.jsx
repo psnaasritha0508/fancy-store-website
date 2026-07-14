@@ -26,6 +26,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, allPr
   const [availability, setAvailability] = useState('in-stock')
   const [expiry, setExpiry] = useState('')
   const [featured, setFeatured] = useState(false)
+  const [visible, setVisible] = useState(true)
   const [image, setImage] = useState(null) // Base64 string
   const [displayOrder, setDisplayOrder] = useState(0)
 
@@ -45,6 +46,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, allPr
       setAvailability(productToEdit.availability || 'in-stock')
       setExpiry(productToEdit.expiry || '')
       setFeatured(productToEdit.featured || false)
+      setVisible(productToEdit.visible !== false)
       setImage(productToEdit.image || null)
       setDisplayOrder(productToEdit.displayOrder || 0)
     } else {
@@ -59,6 +61,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, allPr
       setAvailability('in-stock')
       setExpiry('')
       setFeatured(false)
+      setVisible(true)
       setImage(null)
       // Defaults to max displayOrder + 1
       const maxOrder = allProducts.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
@@ -195,6 +198,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, allPr
       availability,
       expiry:       expiry.trim() || null,
       featured,
+      visible,
       image,
       displayOrder: numOrder,
       emoji:        productToEdit?.emoji || '✨',
@@ -379,6 +383,29 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit, allPr
                 className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
                 style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
               />
+            </div>
+          </div>
+
+          {/* Visibility toggle */}
+          <div className="p-4 rounded-2xl border" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }}>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-heading text-sm font-semibold" style={{ color: 'var(--color-text)' }}>Visibility</p>
+                <p className="font-body text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  Hidden products stay in the admin dashboard but are removed from storefront sections.
+                </p>
+              </div>
+              <label className="inline-flex items-center gap-3 cursor-pointer">
+                <span className="text-xs font-bold uppercase" style={{ color: visible ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                  {visible ? 'Visible' : 'Hidden'}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={visible}
+                  onChange={(e) => setVisible(e.target.checked)}
+                  className="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+              </label>
             </div>
           </div>
 

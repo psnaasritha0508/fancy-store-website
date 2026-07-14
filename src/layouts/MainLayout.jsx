@@ -7,6 +7,7 @@ import Footer             from '@components/layout/Footer'
 import SplashScreen       from '@components/common/SplashScreen'
 import FloatingWhatsApp   from '@components/common/FloatingWhatsApp'
 import ScrollToTop        from '@components/common/ScrollToTop'
+import AnnouncementBar    from '@components/common/AnnouncementBar'
 import { ProductModal }   from '@components/shop'
 import { ProductModalProvider } from '@context/ProductModalContext'
 
@@ -58,13 +59,15 @@ export default function MainLayout() {
           }}
         />
 
+        <AnnouncementBar />
+
         {/* Sticky navbar */}
         <Navbar />
 
         {/* Main content — offset by navbar height */}
         <main
           className="flex-1 w-full"
-          style={{ paddingTop: 'var(--navbar-height)' }}
+          style={{ paddingTop: 'calc(var(--navbar-height) + var(--announcement-height, 0px))' }}
         >
           <Outlet />
         </main>

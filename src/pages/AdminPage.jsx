@@ -9,7 +9,8 @@ import {
   CategoryManager,
   ProductFormModal,
   WebsiteContentManager,
-  StoreSettingsManager
+  StoreSettingsManager,
+  SecuritySettingsManager
 } from '@components/admin'
 import { storageService } from '@services/storageService'
 import { STORE_NAME } from '@constants'
@@ -181,6 +182,11 @@ export default function AdminPage() {
           {/* Settings Tab */}
           {activeSection === 'settings' && (
             <StoreSettingsManager />
+          )}
+
+          {/* Security Tab */}
+          {activeSection === 'security' && (
+            <SecuritySettingsManager />
           )}
         </motion.div>
       </AnimatePresence>

@@ -60,6 +60,13 @@ export default function WebsiteContentManager() {
     finalCta:         true
   })
 
+  const [announcement, setAnnouncement] = useState({
+    enabled: true,
+    text: '',
+    minAmount: 1000,
+    icon: '🚚'
+  })
+
   const [aboutPage, setAboutPage] = useState({
     mission: '',
     vision:  '',
@@ -74,6 +81,12 @@ export default function WebsiteContentManager() {
       setHero(loaded.hero)
       setSeasonalBanner(loaded.seasonalBanner)
       setHomepageVisibility(loaded.homepageVisibility)
+      setAnnouncement(loaded.announcement || {
+        enabled: true,
+        text: '',
+        minAmount: 1000,
+        icon: '🚚'
+      })
       if (loaded.aboutPage) {
         setAboutPage(loaded.aboutPage)
       }
@@ -135,6 +148,7 @@ export default function WebsiteContentManager() {
         badge: `${seasonalBanner.style} Special`
       },
       homepageVisibility,
+      announcement,
       aboutPage
     }
 
@@ -362,7 +376,72 @@ export default function WebsiteContentManager() {
             </div>
           </div>
 
-          {/* 3. ABOUT US PAGE CONFIG */}
+          {/* 3. ANNOUNCEMENT BAR CONFIG */}
+          <div
+            className="p-6 rounded-3xl border space-y-4"
+            style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)' }}
+          >
+            <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'var(--color-border)' }}>
+              <h3 className="font-heading text-lg font-bold flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                <span>📢</span> Announcement Bar Settings
+              </h3>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span className="font-body text-xs font-bold uppercase text-neutral-400">Enabled</span>
+                <input
+                  type="checkbox"
+                  checked={announcement.enabled}
+                  onChange={(e) => setAnnouncement({ ...announcement, enabled: e.target.checked })}
+                  className="w-4 h-4 rounded cursor-pointer text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Announcement Text</label>
+                <input
+                  type="text"
+                  value={announcement.text}
+                  onChange={(e) => setAnnouncement({ ...announcement, text: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Minimum Order Amount</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={announcement.minAmount}
+                  onChange={(e) => setAnnouncement({ ...announcement, minAmount: Number(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <label className="font-body text-xs font-bold text-neutral-400 uppercase">Icon (Optional)</label>
+                <input
+                  type="text"
+                  value={announcement.icon}
+                  onChange={(e) => setAnnouncement({ ...announcement, icon: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none"
+                  style={{ backgroundColor: 'var(--color-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                  placeholder="🚚"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border p-3" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-alt)' }}>
+              <p className="font-body text-[11px] uppercase tracking-wide mb-2" style={{ color: 'var(--color-text-muted)' }}>Preview</p>
+              <div className="rounded-full border px-4 py-2 flex items-center justify-center gap-2 text-sm font-semibold" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
+                <span>{announcement.icon || '📢'}</span>
+                <span>{announcement.text || 'Free delivery on orders above ₹1000'}</span>
+                <span className="text-[var(--color-secondary)]">• Min ₹{announcement.minAmount || 1000}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. ABOUT US PAGE CONFIG */}
           <div
             className="p-6 rounded-3xl border space-y-4"
             style={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)' }}

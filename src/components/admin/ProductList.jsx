@@ -133,6 +133,7 @@ export default function ProductList({
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4 text-right">Selling Price</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Visibility</th>
                 <th className="px-6 py-4">Featured</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
@@ -213,6 +214,19 @@ export default function ProductList({
                           }}
                         >
                           {isOutOfStock ? 'Sold Out' : 'Active'}
+                        </span>
+                      </td>
+
+                      {/* Visibility */}
+                      <td className="px-6 py-4">
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: product.visible === false ? '#FEE2E2' : '#D1FAE5',
+                            color: product.visible === false ? '#991B1B' : '#065F46',
+                          }}
+                        >
+                          {product.visible === false ? 'Hidden' : 'Visible'}
                         </span>
                       </td>
 
@@ -322,6 +336,15 @@ export default function ProductList({
                     }}
                   >
                     {isOutOfStock ? 'Sold Out' : 'Active'}
+                  </span>
+                  <span
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: product.visible === false ? '#FEE2E2' : '#D1FAE5',
+                      color: product.visible === false ? '#991B1B' : '#065F46',
+                    }}
+                  >
+                    {product.visible === false ? 'Hidden' : 'Visible'}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button

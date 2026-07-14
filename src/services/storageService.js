@@ -11,7 +11,8 @@ import {
   STORE_INSTAGRAM_HANDLE,
   STORE_GOOGLE_MAPS,
   STORE_HOURS,
-  STORE_LOGO
+  STORE_LOGO,
+  ADMIN_PASSWORD
 } from '@constants'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +63,15 @@ function getDefaultSettings() {
       seasonalBanner:   true,
       visitStore:       true,
       finalCta:         true
+    },
+    security: {
+      adminPassword: ADMIN_PASSWORD
+    },
+    announcement: {
+      enabled: true,
+      text: '🚚 Free Delivery on Orders Above ₹1000',
+      minAmount: 1000,
+      icon: '🚚'
     },
     aboutPage: {
       story: [
@@ -121,18 +131,64 @@ export const storageService = {
       if (!stored) return getDefaultSettings()
 
       const parsed = JSON.parse(stored)
+      const defaults = getDefaultSettings()
+
       // Check for core parameters to determine payload health
       if (!parsed.storeInfo || !parsed.hero || !parsed.seasonalBanner || !parsed.homepageVisibility || !parsed.aboutPage) {
         throw new Error('Required configuration fields are missing.')
       }
 
-      // Auto-migrate duplicate hero title
-      if (parsed.hero && parsed.hero.title === '50+ Years of Trusted Service') {
-        parsed.hero.title = 'Krishna Fancies'
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parsed))
+      const normalized = {
+        ...defaults,
+        ...parsed,
+        storeInfo: {
+          ...defaults.storeInfo,
+          ...(parsed.storeInfo || {}),
+          address: {
+            ...(defaults.storeInfo.address || {}),
+            ...((parsed.storeInfo && parsed.storeInfo.address) || {})
+          },
+          hours: {
+            ...(defaults.storeInfo.hours || {}),
+            ...((parsed.storeInfo && parsed.storeInfo.hours) || {})
+          }
+        },
+        hero: { ...defaults.hero, ...(parsed.hero || {}) },
+        seasonalBanner: { ...defaults.seasonalBanner, ...(parsed.seasonalBanner || {}) },
+        homepageVisibility: { ...defaults.homepageVisibility, ...(parsed.homepageVisibility || {}) },
+        security: { ...defaults.security, ...(parsed.security || {}) },
+        announcement: { ...defaults.announcement, ...(parsed.announcement || {}) },
+        aboutPage: {
+          ...defaults.aboutPage,
+          ...(parsed.aboutPage || {}),
+          story: Array.isArray(parsed.aboutPage?.story) ? parsed.aboutPage.story : defaults.aboutPage.story
+        }
       }
 
-      return parsed
+      // Auto-migrate duplicate hero title
+      if (parsed.hero && parsed.hero.title === '50+ Years of Trusted Service') {
+        normalized.hero.title = 'Krishna Fancies'
+      }
+
+      // Auto-import current constants when a field is missing or empty
+      normalized.storeInfo.name = normalized.storeInfo.name || defaults.storeInfo.name
+      normalized.storeInfo.tagline = normalized.storeInfo.tagline || defaults.storeInfo.tagline
+      normalized.storeInfo.phone = normalized.storeInfo.phone || defaults.storeInfo.phone
+      normalized.storeInfo.whatsapp = normalized.storeInfo.whatsapp || defaults.storeInfo.whatsapp
+      normalized.storeInfo.email = normalized.storeInfo.email || defaults.storeInfo.email
+      normalized.storeInfo.address.full = normalized.storeInfo.address.full || defaults.storeInfo.address.full
+      normalized.storeInfo.instagram = normalized.storeInfo.instagram || defaults.storeInfo.instagram
+      normalized.storeInfo.instagramHandle = normalized.storeInfo.instagramHandle || defaults.storeInfo.instagramHandle
+      normalized.storeInfo.googleMaps = normalized.storeInfo.googleMaps || defaults.storeInfo.googleMaps
+      normalized.storeInfo.hours.weekdays = normalized.storeInfo.hours.weekdays || defaults.storeInfo.hours.weekdays
+      normalized.storeInfo.hours.sunday = normalized.storeInfo.hours.sunday || defaults.storeInfo.hours.sunday
+      normalized.storeInfo.logo = normalized.storeInfo.logo || defaults.storeInfo.logo
+
+      if (JSON.stringify(normalized) !== stored) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized))
+      }
+
+      return normalized
     } catch (e) {
       console.warn('Recovering from corrupted settings payload. Resetting default values:', e)
       const fallback = getDefaultSettings()
@@ -158,6 +214,45 @@ export const storageService = {
     }
   },
 
+  getAdminPassword() {
+    const settings = this.getSettings()
+    return settings.security?.adminPassword || ADMIN_PASSWORD
+  },
+
+  verifyAdminPassword(password) {
+    return this.getAdminPassword() === password
+  },
+
+  updateAdminPassword({ currentPassword, newPassword, confirmPassword }) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      throw new Error('Please fill in all password fields.')
+    }
+
+    if (!this.verifyAdminPassword(currentPassword)) {
+      throw new Error('The current password is incorrect.')
+    }
+
+    if (newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters long.')
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new Error('New password confirmation does not match.')
+    }
+
+    const settings = this.getSettings()
+    const updated = {
+      ...settings,
+      security: {
+        ...settings.security,
+        adminPassword: newPassword
+      }
+    }
+
+    this.saveSettings(updated)
+    return updated
+  },
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Product Methods
   // ─────────────────────────────────────────────────────────────────────────────
@@ -172,7 +267,9 @@ export const storageService = {
       if (!Array.isArray(items)) {
         throw new Error('Products payload is not a valid list.')
       }
-      return items.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      return items
+        .map((item) => ({ ...item, visible: item.visible !== false }))
+        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     } catch (e) {
       console.warn('Recovering from corrupted products payload. Resetting default product list:', e)
       try {
@@ -204,7 +301,10 @@ export const storageService = {
     const products = this.getProducts()
     const index = products.findIndex(p => p.id === id)
     
-    let finalProduct = { ...updatedProduct }
+    let finalProduct = {
+      ...updatedProduct,
+      visible: updatedProduct.visible !== false
+    }
     if (index === -1 && !finalProduct.displayOrder) {
       const maxOrder = products.reduce((max, p) => Math.max(max, p.displayOrder || 0), 0)
       finalProduct.displayOrder = maxOrder + 1

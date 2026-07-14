@@ -74,9 +74,11 @@ export default function ShopPage() {
     setSortBy('featured')
   }
 
+  const visibleProducts = useMemo(() => products.filter((p) => p.visible !== false), [products])
+
   // Filter and sort products using useMemo for performance optimization
   const filteredAndSortedProducts = useMemo(() => {
-    let result = [...products]
+    let result = [...visibleProducts]
 
     // 1. Filter by Category
     if (activeCategory) {
@@ -111,7 +113,7 @@ export default function ShopPage() {
     }
 
     return result
-  }, [products, activeCategory, searchQuery, sortBy])
+  }, [visibleProducts, activeCategory, searchQuery, sortBy])
 
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -151,7 +153,7 @@ export default function ShopPage() {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              products={products}
+              products={visibleProducts}
             />
 
             <SortDropdown value={sortBy} onChange={setSortBy} />

@@ -125,8 +125,9 @@ export default function Navbar() {
     <>
       {/* ── Desktop + Mobile header bar ────────────────────────────── */}
       <header
-        className="fixed top-0 left-0 right-0 backdrop-blur-md border-b"
+        className="fixed left-0 right-0 backdrop-blur-md border-b"
         style={{
+          top:            'var(--announcement-height, 0px)',
           height:          navHeight,
           zIndex:          'var(--z-navbar)',
           backgroundColor: isDark

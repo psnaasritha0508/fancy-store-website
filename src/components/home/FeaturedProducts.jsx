@@ -19,8 +19,8 @@ export default function FeaturedProducts() {
   useEffect(() => {
     const loadFeatured = () => {
       const allProducts = storageService.getProducts()
-      // Filter for featured flag
-      const featured = allProducts.filter(p => p.featured === true)
+      // Filter for featured flag and visible products
+      const featured = allProducts.filter(p => p.featured === true && p.visible !== false)
       // Limit to max 8 items for premium homepage presentation
       setFeaturedProducts(featured.slice(0, 8))
     }

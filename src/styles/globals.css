@@ -50,6 +50,7 @@
   /* Spacing */
   --navbar-height:         4.5rem;
   --navbar-height-scrolled: 3.75rem;
+  --announcement-height:   2.6rem;
 
   /* Transitions */
   --transition-fast:   150ms ease;

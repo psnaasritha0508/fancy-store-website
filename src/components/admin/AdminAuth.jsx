@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Lock, AlertCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { ADMIN_PASSWORD, STORE_NAME, STORE_LOGO } from '@constants'
+import { STORE_NAME, STORE_LOGO } from '@constants'
 import Button from '@components/ui/Button'
 import { toast } from 'react-hot-toast'
+import { storageService } from '@services/storageService'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminAuth — Password Screen
@@ -15,7 +16,7 @@ export default function AdminAuth({ onSuccess }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
+    if (storageService.verifyAdminPassword(password)) {
       sessionStorage.setItem('kf_admin_authed', 'true')
       onSuccess()
       toast.success('Access granted! Welcome to your dashboard.')

@@ -5,6 +5,7 @@ import {
   Star,
   Sparkles,
   Settings,
+  Shield,
   LogOut
 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -23,6 +24,7 @@ export const SECTIONS = [
   { id: 'featured',   label: 'Featured',   icon: Star },
   { id: 'content',    label: 'Website Content', icon: Sparkles },
   { id: 'settings',   label: 'Settings',   icon: Settings },
+  { id: 'security',   label: 'Security',   icon: Shield },
 ]
 
 export default function DashboardLayout({ activeSection, onSelectSection, onLogout, children }) {
